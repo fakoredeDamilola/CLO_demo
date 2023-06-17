@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import Row from "./row";
+import Row from "./Row";
 import Table from "react-bootstrap/Table";
 
 const Worksheet = () => {
