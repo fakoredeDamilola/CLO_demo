@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import Row from "./Row";
 import Table from "react-bootstrap/Table";
+import panelLogoIcon from "../assets/icons/construction-clipboard.svg";
 
 const Worksheet = () => {
   const defaultRows = [
@@ -39,6 +40,13 @@ const Worksheet = () => {
         <thead>
           <tr>
             <th colSpan="5" className="text-capitalize">
+              <img
+                src={panelLogoIcon}
+                alt=""
+                width="30"
+                height="30"
+                className="d-inline-block align-top"
+              />{" "}
               panels
             </th>
           </tr>
