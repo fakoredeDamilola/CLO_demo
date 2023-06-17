@@ -1,6 +1,8 @@
 import React, { useState } from "react";
+import Modal from "react-bootstrap/Modal";
+import Button from "react-bootstrap/Button";
 
-const Row = () => {
+const Row = ({ onDelete }) => {
   const [values, setValues] = useState({
     length: "",
     quantity: "",
@@ -14,6 +16,16 @@ const Row = () => {
       ...prevValues,
       [name]: value,
     }));
+  };
+
+  const [showPopup, setShowPopup] = useState(false);
+
+  const handleShowPopup = () => {
+    setShowPopup(true);
+  };
+
+  const handleClosePopup = () => {
+    setShowPopup(false);
   };
 
   const performCutlistOptimization = (
@@ -77,11 +89,37 @@ const Row = () => {
         result: optimizationResult,
       }));
     }
+
+    handleShowPopup();
   };
 
   const handleDelete = () => {
     onDelete(); // Call the parent component's onDelete function
   };
+
+  // show and hide increment and decrement buttons
+  const [isInputFocused, setIsInputFocused] = useState(false);
+
+  const handleInputFocus = () => {
+    setIsInputFocused(true);
+  };
+
+  const handleInputBlur = () => {
+    setIsInputFocused(false);
+  };
+
+  // JavaScript snippet to hide increment and decrement buttons in Firefox
+  if (navigator.userAgent.toLowerCase().indexOf("firefox") > -1) {
+    const numberInputs = document.querySelectorAll('input[type="number"]');
+    numberInputs.forEach((input) => {
+      input.addEventListener("DOMAttrModified", function (e) {
+        if (e.attrName === "value") {
+          this.style.marginRight = "0"; // Reset margin to hide the buttons
+          this.style.marginRight = -this.offsetWidth + "px"; // Hide buttons by moving them outside the input field
+        }
+      });
+    });
+  }
 
   return (
     <tr>
@@ -91,6 +129,8 @@ const Row = () => {
           name="length"
           value={values.length}
           onChange={handleDataChange}
+          onFocus={handleInputFocus}
+          onBlur={handleInputBlur}
         />
       </td>
       <td>
@@ -99,6 +139,8 @@ const Row = () => {
           name="width"
           value={values.width}
           onChange={handleDataChange}
+          onFocus={handleInputFocus}
+          onBlur={handleInputBlur}
         />
       </td>
       <td>
@@ -107,6 +149,8 @@ const Row = () => {
           name="quantity"
           value={values.quantity}
           onChange={handleDataChange}
+          onFocus={handleInputFocus}
+          onBlur={handleInputBlur}
         />
       </td>
       <td>{values.result}</td>
@@ -114,6 +158,21 @@ const Row = () => {
         <button onClick={handleOptimization}>Optimize</button>
         <button onClick={handleDelete}>Delete</button> {/* Add Delete button */}
       </td>
+      <Modal show={showPopup} onHide={handleClosePopup}>
+        <Modal.Header closeButton>
+          <Modal.Title>Optimization Result</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          {/* Display the optimization result here */}
+          {values.result}
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={handleClosePopup}>
+            Close
+          </Button>
+        </Modal.Footer>
+      </Modal>
+      ;
     </tr>
   );
 };

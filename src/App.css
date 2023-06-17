@@ -1,42 +1,51 @@
-#root {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 2rem;
-  text-align: center;
+/* Disable default width on input element */
+input[type="number"] {
+  width: auto;
+  max-width: 100%;
 }
 
-.logo {
-  height: 6em;
-  padding: 1.5em;
-  will-change: filter;
-  transition: filter 300ms;
-}
-.logo:hover {
-  filter: drop-shadow(0 0 2em #646cffaa);
-}
-.logo.react:hover {
-  filter: drop-shadow(0 0 2em #61dafbaa);
+/* Disable default increment and decrement buttons */
+input[type="number"] {
+  -webkit-appearance: none;
+  -moz-appearance: textfield;
+  appearance: textfield;
 }
 
-@keyframes logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  margin: 0;
+  pointer-events: none;
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  a:nth-of-type(2) .logo {
-    animation: logo-spin infinite 20s linear;
-  }
+/* Make input element responsive */
+input[type="number"] {
+  box-sizing: border-box;
+  padding: 8px;
+  font-size: 16px;
+  line-height: 1.5;
+  border: 0 solid #ccc;
+  border-radius: 4px;
+  transition: border-color 0.3s ease-in-out;
+  width: 100%;
+  max-width: 300px; /* Adjust the maximum width as needed */
 }
 
-.card {
-  padding: 2em;
+/* Show increment and decrement buttons when input is focused */
+input[type="number"]:focus::-webkit-inner-spin-button,
+input[type="number"]:focus::-webkit-outer-spin-button {
+  -webkit-appearance: inner-spin-button;
+  -moz-appearance: inner-spin-button;
+  appearance: inner-spin-button;
+  opacity: 1;
+  pointer-events: auto;
 }
 
-.read-the-docs {
-  color: #888;
+input[type="number"]:focus {
+  outline: none;
+  border: 0;
+  border-color: #80bdff;
+  box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
 }
