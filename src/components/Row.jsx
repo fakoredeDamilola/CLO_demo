@@ -1,8 +1,8 @@
-import React, { useState } from "react";
+import React, {useState} from "react";
 import Modal from "react-bootstrap/Modal";
 import Button from "react-bootstrap/Button";
 
-const Row = ({ onDelete }) => {
+const Row = ({onDelete}) => {
   const [values, setValues] = useState({
     length: "",
     quantity: "",
@@ -11,7 +11,7 @@ const Row = ({ onDelete }) => {
   });
 
   const handleDataChange = (event) => {
-    const { name, value } = event.target;
+    const {name, value} = event.target;
     setValues((prevValues) => ({
       ...prevValues,
       [name]: value,
@@ -64,7 +64,7 @@ const Row = ({ onDelete }) => {
   };
 
   const handleOptimization = () => {
-    const { length, quantity, width } = values;
+    const {length, quantity, width} = values;
     const optimizationResult = performCutlistOptimization(
       parseInt(length),
       parseInt(quantity),
@@ -153,7 +153,7 @@ const Row = ({ onDelete }) => {
           onBlur={handleInputBlur}
         />
       </td>
-      <td>{values.result}</td>
+      {/* <td>{values.result}</td> */}
       <td>
         <button onClick={handleOptimization}>Optimize</button>
         <button onClick={handleDelete}>Delete</button> {/* Add Delete button */}
