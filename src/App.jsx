@@ -6,6 +6,7 @@ import Header from "./components/Header";
 import Worksheet from "./components/Worksheet";
 // import Panelsheet from "./components/Panelsheet";
 // import Stocksheet from "./components/Stocksheet";
+import Accordion from "react-bootstrap/Accordion";
 
 function App() {
   const [stockData, setStockData] = useState([]);
@@ -65,16 +66,31 @@ function App() {
   return (
     <>
       <Header />
-      <Worksheet
-        title={"Stock"}
-        onDataChange={handleStockDataChange}
-        onOptimization={handleOptimization}
-      />
-      <Worksheet
-        title={"Panel"}
-        onDataChange={handlePanelDataChange}
-        onOptimization={handleOptimization}
-      />
+      <Accordion defaultActiveKey={["0", "1"]} alwaysOpen flush>
+        <Accordion.Item eventKey="0">
+          <Accordion.Header className="bg-dark text-light">
+            Stock
+          </Accordion.Header>
+          <Accordion.Body>
+            <Worksheet
+              // title={"Stock"}
+              onDataChange={handleStockDataChange}
+              onOptimization={handleOptimization}
+            />
+          </Accordion.Body>
+        </Accordion.Item>
+
+        <Accordion.Item eventKey="1">
+          <Accordion.Header>Panel</Accordion.Header>
+          <Accordion.Body>
+            <Worksheet
+              // title={"Panel"}
+              onDataChange={handlePanelDataChange}
+              onOptimization={handleOptimization}
+            />
+          </Accordion.Body>
+        </Accordion.Item>
+      </Accordion>
     </>
   );
 }

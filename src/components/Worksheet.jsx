@@ -3,7 +3,7 @@ import Row from "./Row";
 import Table from "react-bootstrap/Table";
 import panelLogoIcon from "../assets/icons/construction-clipboard.svg";
 
-const Worksheet = ({ title, onDataChange, onOptimization }) => {
+const Worksheet = ({ onDataChange, onOptimization }) => {
   const defaultRows = [
     <Row
       key={0}
@@ -58,7 +58,7 @@ const Worksheet = ({ title, onDataChange, onOptimization }) => {
     <div>
       <Table striped borderless hover variant="dark" size="sm" responsive>
         <thead>
-          <tr>
+          {/* <tr>
             <th colSpan="5" className="text-capitalize">
               <img
                 src={panelLogoIcon}
@@ -69,7 +69,7 @@ const Worksheet = ({ title, onDataChange, onOptimization }) => {
               />{" "}
               {title}
             </th>
-          </tr>
+          </tr> */}
           <tr>
             <th colSpan="1" className="text-capitalize">
               length
