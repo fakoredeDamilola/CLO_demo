@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import Modal from "react-bootstrap/Modal";
 import Button from "react-bootstrap/Button";
 
-const Row = ({ onDelete }) => {
+const Row = ({ onDelete, onOptimization, onDataChange }) => {
   const [values, setValues] = useState({
     length: "",
     quantity: "",
@@ -16,81 +16,87 @@ const Row = ({ onDelete }) => {
       ...prevValues,
       [name]: value,
     }));
+
+    onDataChange(values); // Pass the updated values to the parent component
   };
 
-  const [showPopup, setShowPopup] = useState(false);
+  // const [showPopup, setShowPopup] = useState(false);
 
-  const handleShowPopup = () => {
-    setShowPopup(true);
-  };
+  // const handleShowPopup = () => {
+  //   setShowPopup(true);
+  // };
 
-  const handleClosePopup = () => {
-    setShowPopup(false);
-  };
+  // const handleClosePopup = () => {
+  //   setShowPopup(false);
+  // };
 
-  const performCutlistOptimization = (
-    availableLength,
-    availableAmount,
-    availableWidth
-  ) => {
-    // for demo purposes the following estimations have been made
-    const requiredLength = 1;
-    const requiredAmount = 1;
-    const requiredWidth = 1;
+  // const performCutlistOptimization = (
+  //   availableLength,
+  //   availableAmount,
+  //   availableWidth
+  // ) => {
+  //   // for demo purposes the following estimations have been made
+  //   const requiredLength = 1;
+  //   const requiredAmount = 1;
+  //   const requiredWidth = 1;
 
-    const availableArea = availableLength * availableAmount * availableWidth;
-    const requiredArea = requiredLength * requiredAmount * requiredWidth;
+  //   const availableArea = availableLength * availableAmount * availableWidth;
+  //   const requiredArea = requiredLength * requiredAmount * requiredWidth;
 
-    if (
-      availableLength >= requiredLength &&
-      availableAmount >= requiredAmount &&
-      availableWidth >= requiredWidth
-    ) {
-      const usedStocksTotalArea = requiredArea;
-      const totalPanelsArea = availableArea;
-      const totalRequiredPanels = Math.ceil(availableArea / requiredArea);
+  //   if (
+  //     availableLength >= requiredLength &&
+  //     availableAmount >= requiredAmount &&
+  //     availableWidth >= requiredWidth
+  //   ) {
+  //     const usedStocksTotalArea = requiredArea;
+  //     const totalPanelsArea = availableArea;
+  //     const totalRequiredPanels = Math.ceil(availableArea / requiredArea);
 
-      const totalYield = totalPanelsArea - totalRequiredPanels * requiredArea;
+  //     const totalYield = totalPanelsArea - totalRequiredPanels * requiredArea;
 
-      return {
-        totalYield,
-        usedStocksTotalArea,
-        totalPanelsArea,
-        totalRequiredPanels,
-      };
-    } else {
-      return "Insufficient stock";
-    }
-  };
+  //     return {
+  //       totalYield,
+  //       usedStocksTotalArea,
+  //       totalPanelsArea,
+  //       totalRequiredPanels,
+  //     };
+  //   } else {
+  //     return "Insufficient stock";
+  //   }
+  // };
+
+  // const handleOptimization = () => {
+  //   const { length, quantity, width } = values;
+  //   const optimizationResult = performCutlistOptimization(
+  //     parseInt(length),
+  //     parseInt(quantity),
+  //     parseInt(width)
+  //   );
+
+  //   if (typeof optimizationResult === "object") {
+  //     const {
+  //       totalYield,
+  //       usedStocksTotalArea,
+  //       totalPanelsArea,
+  //       totalRequiredPanels,
+  //     } = optimizationResult;
+
+  //     setValues((prevValues) => ({
+  //       ...prevValues,
+  //       result: `Total Yield: ${totalYield}, Used Stocks Total Area: ${usedStocksTotalArea}, Total Panels Area: ${totalPanelsArea}, Total Required Panels: ${totalRequiredPanels}`,
+  //     }));
+  //   } else {
+  //     setValues((prevValues) => ({
+  //       ...prevValues,
+  //       result: optimizationResult,
+  //     }));
+  //   }
+
+  //   handleShowPopup();
+  // };
 
   const handleOptimization = () => {
-    const { length, quantity, width } = values;
-    const optimizationResult = performCutlistOptimization(
-      parseInt(length),
-      parseInt(quantity),
-      parseInt(width)
-    );
-
-    if (typeof optimizationResult === "object") {
-      const {
-        totalYield,
-        usedStocksTotalArea,
-        totalPanelsArea,
-        totalRequiredPanels,
-      } = optimizationResult;
-
-      setValues((prevValues) => ({
-        ...prevValues,
-        result: `Total Yield: ${totalYield}, Used Stocks Total Area: ${usedStocksTotalArea}, Total Panels Area: ${totalPanelsArea}, Total Required Panels: ${totalRequiredPanels}`,
-      }));
-    } else {
-      setValues((prevValues) => ({
-        ...prevValues,
-        result: optimizationResult,
-      }));
-    }
-
-    handleShowPopup();
+    onOptimization(); // Trigger the optimization computation in the parent component
   };
 
   const handleDelete = () => {
@@ -158,12 +164,12 @@ const Row = ({ onDelete }) => {
         <button onClick={handleOptimization}>Optimize</button>
         <button onClick={handleDelete}>Delete</button> {/* Add Delete button */}
       </td>
-      <Modal show={showPopup} onHide={handleClosePopup}>
+      {/* <Modal show={showPopup} onHide={handleClosePopup}>
         <Modal.Header closeButton>
           <Modal.Title>Optimization Result</Modal.Title>
         </Modal.Header>
         <Modal.Body>
-          {/* Display the optimization result here */}
+          Display the optimization result here
           {values.result}
         </Modal.Body>
         <Modal.Footer>
@@ -171,7 +177,7 @@ const Row = ({ onDelete }) => {
             Close
           </Button>
         </Modal.Footer>
-      </Modal>
+      </Modal> */}
       ;
     </tr>
   );

@@ -3,18 +3,38 @@ import Row from "./Row";
 import Table from "react-bootstrap/Table";
 import panelLogoIcon from "../assets/icons/construction-clipboard.svg";
 
-const Worksheet = () => {
+const Worksheet = ({ onDataChange, onOptimization }) => {
   const defaultRows = [
-    <Row key={0} onDelete={() => handleDelete(0)} />,
-    <Row key={1} onDelete={() => handleDelete(1)} />,
-    <Row key={2} onDelete={() => handleDelete(2)} />,
+    <Row
+      key={0}
+      onDelete={() => handleDelete(0)}
+      onDataChange={onDataChange}
+      onOptimization={onOptimization}
+    />,
+    <Row
+      key={1}
+      onDelete={() => handleDelete(1)}
+      onDataChange={onDataChange}
+      onOptimization={onOptimization}
+    />,
+    <Row
+      key={2}
+      onDelete={() => handleDelete(2)}
+      onDataChange={onDataChange}
+      onOptimization={onOptimization}
+    />,
   ];
   const [rows, setRows] = useState(defaultRows);
 
   const addRow = () => {
     setRows([
       ...rows,
-      <Row key={rows.length} onDelete={() => handleDelete(rows.length)} />,
+      <Row
+        key={rows.length}
+        onDelete={() => handleDelete(rows.length)}
+        onDataChange={onDataChange}
+        onOptimization={onOptimization}
+      />,
     ]);
   };
 
@@ -38,7 +58,7 @@ const Worksheet = () => {
     <div>
       <Table striped borderless hover variant="dark" size="sm" responsive>
         <thead>
-          <tr>
+          {/* <tr>
             <th colSpan="5" className="text-capitalize">
               <img
                 src={panelLogoIcon}
@@ -47,9 +67,9 @@ const Worksheet = () => {
                 height="30"
                 className="d-inline-block align-top"
               />{" "}
-              panels
+              {title}
             </th>
-          </tr>
+          </tr> */}
           <tr>
             <th colSpan="1" className="text-capitalize">
               length
