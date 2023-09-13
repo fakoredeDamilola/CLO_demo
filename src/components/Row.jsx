@@ -2,18 +2,13 @@ import React, {useState} from "react";
 import Modal from "react-bootstrap/Modal";
 import Button from "react-bootstrap/Button";
 
-<<<<<<< HEAD
-const Row = ({onDelete, length, quantity, width, result}) => {
-  const [values, setValues] = useState({});
-=======
-const Row = ({ onDelete, onOptimization, onDataChange }) => {
+const Row = ({onDelete, onOptimization, onDataChange}) => {
   const [values, setValues] = useState({
     length: "",
     quantity: "",
     width: "",
     result: "",
   });
->>>>>>> a358cc2693503aabb35daec1d21b4199f4ad7c9a
 
   const handleDataChange = (event) => {
     const {name, value} = event.target;
@@ -101,7 +96,6 @@ const Row = ({ onDelete, onOptimization, onDataChange }) => {
   // };
 
   const handleOptimization = () => {
-<<<<<<< HEAD
     // const {length, quantity, width} = values;
     // const optimizationResult = performCutlistOptimization(
     //   parseInt(length),
@@ -126,9 +120,6 @@ const Row = ({ onDelete, onOptimization, onDataChange }) => {
     //   }));
     // }
     // handleShowPopup();
-=======
-    onOptimization(); // Trigger the optimization computation in the parent component
->>>>>>> a358cc2693503aabb35daec1d21b4199f4ad7c9a
   };
 
   const handleDelete = () => {
