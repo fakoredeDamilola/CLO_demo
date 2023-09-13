@@ -99,3 +99,7 @@ input[type="number"]:focus {
 #optimize {
   margin-top: 10px;
 }
+.container {
+  padding: 10px;
+  box-sizing: border-box;
+}

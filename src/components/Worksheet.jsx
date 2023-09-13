@@ -391,49 +391,14 @@ const Worksheet = () => {
                   key={panelLabel.id}
                   style={panelLabel.style}
                 >
-                  {panelLabel.width} <span class="dimension-arrow">&rarr;</span>
+                  {panelLabel.width}{" "}
+                  <span className="dimension-arrow">&rarr;</span>
                   {panelLabel.height}{" "}
-                  <span class="dimension-arrow">&darr;</span>
+                  <span className="dimension-arrow">&darr;</span>
                 </div>
               </div>
             );
           })}
-        </div>
-      </div>
-    </div>
-  );
-};
-
-export default Worksheet;
-et */}
-          <div className="dimension-label" style={{width: stockWidth + "px"}}>
-            {stockWidth}
-          </div>
-
-          {panelDivs.map((panelDiv, index) => {
-            const panelLabel = panelLabels[index];
-            return (
-              <div
-                className="panelDiv panel"
-                key={index}
-                style={panelDiv.style}
-              >
-                <div
-                  className="panelLabel"
-                  key={panelLabel.id}
-                  style={panelLabel.style}
-                >
-                  {panelLabel.width} <span class="dimension-arrow">&rarr;</span>
-                  {panelLabel.height}{" "}
-                  <span class="dimension-arrow">&darr;</span>
-                </div>
-              </div>
-            );
-          })}
-
-          {/* <div className="panelDiv" style={panelDiv.style}>
-            <div className="panelLabel" style={panelLabel.style}></div>
-          </div> */}
         </div>
       </div>
     </div>
