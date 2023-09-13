@@ -11,7 +11,7 @@ import executeIcon from "../assets/icons/play.svg";
 import saveIcon from "../assets/icons/save.svg";
 import logoIcon from "../assets/icons/grids.svg";
 
-const Header = () => {
+const Header = ({optimizeData}) => {
   return (
     <header>
       <Navbar bg="dark" variant="dark" expand="lg">
@@ -33,6 +33,7 @@ const Header = () => {
               <Button className="me-lg-2 me-sm-0" variant="success">
                 <img
                   src={executeIcon}
+                  onClick={optimizeData}
                   alt=""
                   width="30"
                   height="30"

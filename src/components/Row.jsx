@@ -2,13 +2,8 @@ import React, {useState} from "react";
 import Modal from "react-bootstrap/Modal";
 import Button from "react-bootstrap/Button";
 
-const Row = ({onDelete}) => {
-  const [values, setValues] = useState({
-    length: "",
-    quantity: "",
-    width: "",
-    result: "",
-  });
+const Row = ({onDelete, length, quantity, width, result}) => {
+  const [values, setValues] = useState({});
 
   const handleDataChange = (event) => {
     const {name, value} = event.target;
@@ -64,33 +59,30 @@ const Row = ({onDelete}) => {
   };
 
   const handleOptimization = () => {
-    const {length, quantity, width} = values;
-    const optimizationResult = performCutlistOptimization(
-      parseInt(length),
-      parseInt(quantity),
-      parseInt(width)
-    );
-
-    if (typeof optimizationResult === "object") {
-      const {
-        totalYield,
-        usedStocksTotalArea,
-        totalPanelsArea,
-        totalRequiredPanels,
-      } = optimizationResult;
-
-      setValues((prevValues) => ({
-        ...prevValues,
-        result: `Total Yield: ${totalYield}, Used Stocks Total Area: ${usedStocksTotalArea}, Total Panels Area: ${totalPanelsArea}, Total Required Panels: ${totalRequiredPanels}`,
-      }));
-    } else {
-      setValues((prevValues) => ({
-        ...prevValues,
-        result: optimizationResult,
-      }));
-    }
-
-    handleShowPopup();
+    // const {length, quantity, width} = values;
+    // const optimizationResult = performCutlistOptimization(
+    //   parseInt(length),
+    //   parseInt(quantity),
+    //   parseInt(width)
+    // );
+    // if (typeof optimizationResult === "object") {
+    //   const {
+    //     totalYield,
+    //     usedStocksTotalArea,
+    //     totalPanelsArea,
+    //     totalRequiredPanels,
+    //   } = optimizationResult;
+    //   setValues((prevValues) => ({
+    //     ...prevValues,
+    //     result: `Total Yield: ${totalYield}, Used Stocks Total Area: ${usedStocksTotalArea}, Total Panels Area: ${totalPanelsArea}, Total Required Panels: ${totalRequiredPanels}`,
+    //   }));
+    // } else {
+    //   setValues((prevValues) => ({
+    //     ...prevValues,
+    //     result: optimizationResult,
+    //   }));
+    // }
+    // handleShowPopup();
   };
 
   const handleDelete = () => {
