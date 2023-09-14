@@ -3,6 +3,7 @@ import React, {useState} from "react";
 import Table from "react-bootstrap/Table";
 import panelLogoIcon from "../assets/icons/construction-clipboard.svg";
 import {Button} from "react-bootstrap";
+import CustomButton from "./custom/CustomButton";
 
 const Worksheet = () => {
   const [rows, setRows] = useState([
@@ -20,6 +21,10 @@ const Worksheet = () => {
   const [totalUsedArea, setTotalUsedArea] = useState("");
   const [totalWastedArea, setTotalWastedArea] = useState("");
   const [totalCuts, setTotalCuts] = useState("");
+  const [inputValues, setInputValues] = useState({
+    totalStockWidth: "",
+    totalStockHeight: "",
+  });
 
   function getColorForPanel(panelWidth, panelHeight) {
     const sizeString = `${panelWidth}x${panelHeight}`;
@@ -51,14 +56,13 @@ const Worksheet = () => {
       // Display an error alert (you can customize this as needed)
       alert("Please fill in all input fields before saving.");
     } else {
-      var totalUsedArea = 0;
       var totalWastedArea = 0;
       var totalCuts = 0;
       var panelsPlaced = 0;
       var panelsTotal = 0;
 
-      const stockLength = 1000;
-      const stockWidth = 1000;
+      const stockLength = inputValues.totalStockHeight;
+      const stockWidth = inputValues.totalStockWidth;
 
       // Sort the panels based on area (larger panels first)
       rows.sort((rowA, rowB) => {
@@ -81,12 +85,16 @@ const Worksheet = () => {
       let totalCutLength = 0;
       const parentPanel = [];
       const parentLabel = [];
+      let totalWasteArea = stockLength * stockWidth;
+      let totalUsedArea = 0;
       rows.forEach((panel) => {
         const panelWidth = parseInt(panel.width);
         const panelHeight = parseInt(panel.height);
         const panelQuantity = parseInt(panel.quantity);
         let panelDiv = {};
         let panelLabel = {};
+        let bgColor = getColorForPanel(panelWidth, panelHeight);
+        console.log({bgColor});
         console.log({panelHeight, panelWidth, panelQuantity, panel});
         for (let i = 0; i < panelQuantity; i++) {
           let placed = false;
@@ -119,7 +127,7 @@ const Worksheet = () => {
                     height: panelHeight + "px",
                     left: col + "px",
                     top: row + "px",
-                    backgroundColor: getColorForPanel(panelWidth, panelHeight),
+                    backgroundColor: bgColor,
                   },
                 };
                 panelLabel = {
@@ -132,7 +140,9 @@ const Worksheet = () => {
                   width: panelWidth,
                   height: panelHeight,
                 };
-
+                let area = panelWidth * panelHeight;
+                totalWasteArea -= area;
+                totalUsedArea += area;
                 parentPanel.push(panelDiv);
                 parentLabel.push(panelLabel);
                 placed = true;
@@ -143,63 +153,39 @@ const Worksheet = () => {
           }
 
           if (!placed) {
-            console.log("Insufficient stock space.");
+            alert("Insufficient stock space.");
             return;
           }
           totalCutLength += panelWidth + panelHeight;
         }
 
         panelsTotal += panelQuantity;
+        console.log({panelQuantity, panelsTotal, panelsPlaced});
         // After placing all the panels, calculate the statistics
-        totalUsedArea = stockLength * stockWidth * (panelsPlaced / panelsTotal);
-        totalWastedArea = stockLength * stockWidth - totalUsedArea;
         totalCuts = panelsPlaced;
-        console.log("wasted area= ", totalWastedArea);
-        console.log("used area= ", totalUsedArea);
-        setTotalUsedArea;
       });
-      console.log({parentPanel, parentLabel});
       setPanelDivs(parentPanel);
       setPanelLabels(parentLabel);
-      //Update the statistics in the HTML
-      //document.getElementById('totalCutLength').value = `${totalCutLength} (or ${totalCutLength.toFixed(2)} feet)`;
-      // Update the statistics in the HTML
       setUsedStockSheets(`${stockLength} ×${stockWidth} x${stockSheet}`);
-      setTotalUsedArea(
-        `${totalUsedArea} (${(
-          (totalUsedArea / (stockLength * stockWidth)) *
-          100
-        ).toFixed(2)}%)`
-      );
-      setTotalWastedArea(
-        `${totalWastedArea} (${(
-          (totalWastedArea / (stockLength * stockWidth)) *
-          100
-        ).toFixed(2)}%)`
-      );
+
+      setTotalWastedArea(totalWasteArea);
+      setTotalUsedArea(totalUsedArea);
       setTotalCuts(totalCuts);
       setTotalCutLength("6666");
       console.log({panelDivs, panelLabels});
-      //  totalCutLength.toString();
-      // stockSheetImage = stockSheetToImage(stockSheet);
-      // const downloadButton = document.getElementById("downloadImage");
-      // //downloadButton.style.display = 'block';
-      // console.log("wasted area= ", totalWastedArea);
-      // console.log("used area= ", totalUsedArea);
+      totalCutLength.toString();
+      console.log({totalCutLength});
+      console.log("wasted area= ", totalWastedArea);
     }
   };
   const addRow = () => {
     const initialRow = {
-      id: "", // You can generate a unique ID for each row
+      id: "",
       length: "",
       width: "",
       quantity: "",
-      // Add other properties as needed
     };
-    // Generate a unique ID for the new row (e.g., using a timestamp)
     const newRowId = Date.now().toString();
-
-    // Create a new row object with the generated ID
     const newRow = {
       ...initialRow,
       id: newRowId,
@@ -221,19 +207,19 @@ const Worksheet = () => {
 
   const handleDataChange = (e, id) => {
     const {name, value} = e.target;
-
-    // Create a copy of the rows array to avoid mutating the state directly
     const updatedRows = rows.map((row) => {
       if (row.id === id) {
-        // Update the specific property (e.g., 'length', 'width', 'quantity')
         return {...row, [name]: value};
       }
       return row;
     });
-
-    // Update the state with the new array of rows
-    // Assuming you have a state setter function like setRows
     setRows(updatedRows);
+  };
+  const handleChange = (e) => {
+    setInputValues((prev) => ({
+      ...prev,
+      [e.target.name]: e.target.value,
+    }));
   };
 
   const handleDelete = (id) => {
@@ -247,6 +233,26 @@ const Worksheet = () => {
 
   return (
     <div>
+      <p>
+        Sheet Width:{" "}
+        <input
+          value={inputValues.totalStockWidth}
+          type="text"
+          id="totalStockWidth"
+          name="totalStockWidth"
+          onChange={handleChange}
+        />
+      </p>
+      <p>
+        Sheet Width:{" "}
+        <input
+          value={inputValues.totalStockHeight}
+          type="text"
+          id="totalStockHeight"
+          name="totalStockHeight"
+          onChange={handleChange}
+        />
+      </p>
       <Table striped borderless hover variant="dark" size="sm" responsive>
         <thead>
           <tr>
@@ -314,7 +320,13 @@ const Worksheet = () => {
                 </td>
                 {/* <td>{result}</td> */}
                 <td>
-                  <button onClick={() => handleDelete(id)}>Delete</button>{" "}
+                  <CustomButton
+                    backgroundColor="red"
+                    width="100px"
+                    onClick={() => handleDelete(id)}
+                  >
+                    Delete
+                  </CustomButton>
                   {/* Add Delete button */}
                 </td>
               </tr>
@@ -322,7 +334,9 @@ const Worksheet = () => {
           })}
         </tbody>
       </Table>
-      <button onClick={addRow}>Add Row</button>
+      <CustomButton backgroundColor="blue" width="150px" onClick={addRow}>
+        Add Row
+      </CustomButton>
       <Button
         onClick={optimizeData}
         className="me-lg-2 me-sm-0"
@@ -347,7 +361,7 @@ const Worksheet = () => {
       </p>
       <p>
         Total used area:{" "}
-        <input type="text" value={totalCutLength} id="totalUsedArea" readonly />
+        <input type="text" value={totalUsedArea} id="totalUsedArea" readonly />
       </p>
       <p>
         Total wasted area:{" "}
