@@ -1,0 +1,45 @@
+.panelText {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+input {
+  height: 40px;
+}
+/* CustomUploadButton.css */
+
+.custom-upload-container {
+  text-align: center;
+  margin-top: 20px;
+}
+
+.custom-upload-button {
+  display: inline-block;
+  padding: 10px 20px;
+  background-color: #007bff;
+  color: #fff;
+  cursor: pointer;
+  border: none;
+  border-radius: 5px;
+  font-size: 16px;
+  margin-right: 10px;
+}
+
+.custom-upload-button:hover {
+  background-color: #0056b3;
+}
+
+.custom-save-button {
+  display: inline-block;
+  padding: 10px 20px;
+  background-color: #28a745;
+  color: #fff;
+  cursor: pointer;
+  border: none;
+  border-radius: 5px;
+  font-size: 16px;
+}
+
+.custom-save-button:hover {
+  background-color: #1e7e34;
+}
