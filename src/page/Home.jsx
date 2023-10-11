@@ -2,7 +2,6 @@ import React, {useState} from "react";
 import Worksheet from "../components/Worksheet";
 import Stocksheet from "../components/Stocksheet";
 import Results from "../components/Results";
-import InputRows from "../components/InputRows";
 import Options from "../components/Options";
 import {read, utils} from "xlsx";
 // import {v4 as uuidv4} from "uuid";
@@ -112,13 +111,18 @@ const Home = () => {
   }
   const optimizeData = () => {
     let hasError = false;
-
     // Iterate through the rows
     for (const {id, height, width, quantity} of rows) {
       // Check if any input field is empty
-      if (height === "" || width === "" || quantity === "") {
+      if (
+        height === "" ||
+        width === "" ||
+        quantity === "" ||
+        inputValues.totalStockHeight === "" ||
+        inputValues.totalStockWidth === ""
+      ) {
         hasError = true;
-        break; // Exit the loop if an empty input is found
+        break;
       }
     }
 
@@ -259,7 +263,12 @@ const Home = () => {
         return results;
       }
 
-      const result = optimizePanels(1000, 1000, rows, panelThickness);
+      const result = optimizePanels(
+        stockLength,
+        stockWidth,
+        rows,
+        panelThickness
+      );
       console.log(result);
       setPanelDivs(result[0].parentPanel);
       setPanelLabels(result[0].parentLabel);
