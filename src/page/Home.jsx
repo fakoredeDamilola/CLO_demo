@@ -4,6 +4,7 @@ import Stocksheet from "../components/Stocksheet";
 import Results from "../components/Results";
 import Options from "../components/Options";
 import {read, utils} from "xlsx";
+import {optimizePanels} from "../utils/functions";
 // import {v4 as uuidv4} from "uuid";
 
 const Home = () => {
@@ -16,7 +17,7 @@ const Home = () => {
     {id: 1, height: "", quantity: "", label: "", width: "", result: ""},
   ]);
   const [remainingPanel, setRemainingPanel] = useState([]);
-  const [panelThickness, setPanelThickness] = useState("");
+  const [panelThickness, setPanelThickness] = useState("0");
   const [panelLabel, setPanelLabel] = useState(true);
   const [totalUsedArea, setTotalUsedArea] = useState("");
   const [totalWastedArea, setTotalWastedArea] = useState("");
@@ -97,23 +98,10 @@ const Home = () => {
     {id: 1, height: "", quantity: "", width: "", label: "", result: ""},
   ]);
 
-  function getColorForPanel(panelWidth, panelHeight) {
-    const sizeString = `${panelWidth}x${panelHeight}`;
-
-    const sizeToColorMap = new Map();
-    if (!sizeToColorMap.has(sizeString)) {
-      // Generate a random color for a new size and store it in the map
-      const randomColor =
-        "#" + Math.floor(Math.random() * 16777215).toString(16) + "13";
-      sizeToColorMap.set(sizeString, randomColor);
-    }
-    return sizeToColorMap.get(sizeString);
-  }
   const optimizeData = () => {
+    console.log(12);
     let hasError = false;
-    // Iterate through the rows
     for (const {id, height, width, quantity} of rows) {
-      // Check if any input field is empty
       if (
         height === "" ||
         width === "" ||
@@ -127,13 +115,8 @@ const Home = () => {
     }
 
     if (hasError) {
-      // Display an error alert (you can customize this as needed)
       alert("Please fill in all input fields before saving.");
     } else {
-      var totalCuts = 0;
-      var panelsPlaced = 0;
-      var panelsTotal = 0;
-      var currentStockSheet = 0;
       const stockLength = inputValues.totalStockHeight;
       const stockWidth = inputValues.totalStockWidth;
 
@@ -148,128 +131,13 @@ const Home = () => {
       });
 
       setStockWidth(stockWidth);
-
-      function optimizePanels(
-        stockLength,
-        stockWidth,
-        rows,
-        panelMargin = "0"
-      ) {
-        const results = [];
-        let totalCutLength = 0;
-        let totalUsedArea = 0;
-        const parentPanel = [];
-        const parentLabel = [];
-        setRemainingPanel(rows);
-
-        stockLength = parseInt(stockLength);
-        stockWidth = parseInt(stockWidth);
-
-        const matrix = Array.from({length: stockLength + 1}, () =>
-          Array(stockWidth + 1).fill(false)
-        );
-
-        rows.sort((a, b) => b.width * b.height - a.width * a.height);
-
-        function canFit(row, col, panelWidth, panelHeight) {
-          for (let r = row; r < row + panelHeight; r++) {
-            for (let c = col; c < col + panelWidth; c++) {
-              if (matrix[r][c]) {
-                return false;
-              }
-            }
-          }
-          return true;
-        }
-        function placePanel(row, col, panelWidth, panelHeight, panelText) {
-          for (let r = row; r < row + panelHeight; r++) {
-            for (let c = col; c < col + panelWidth; c++) {
-              matrix[r][c] = true;
-            }
-          }
-
-          const panelDiv = {
-            id: parseInt(Math.random() * row),
-            className: "panel",
-            style: {
-              width: panelWidth + "px",
-              height: panelHeight + "px",
-              left: col + "px",
-              top: row + "px",
-              backgroundColor: getColorForPanel(panelWidth, panelHeight),
-            },
-          };
-
-          const panelLabel = {
-            id: parseInt(Math.random() * row),
-            className: "dimension-label",
-            style: {
-              width: panelWidth + "px",
-              height: panelHeight + "px",
-              left: col + panelMargin * 2 + "px",
-              top: row + "px",
-            },
-            panelText,
-            width: panelWidth,
-            height: panelHeight,
-          };
-
-          const area = panelWidth * panelHeight;
-          totalUsedArea += area;
-          parentPanel.push(panelDiv);
-          parentLabel.push(panelLabel);
-          totalCutLength += panelWidth + panelHeight + panelMargin * 2; // Account for panel thickness
-        }
-
-        for (const panel of rows) {
-          const panelWidth = parseInt(panel.width);
-          const panelHeight = parseInt(panel.height);
-          const panelQuantity = parseInt(panel.quantity);
-          const panelText = panel.label;
-
-          for (let i = 0; i < panelQuantity; i++) {
-            let placed = false;
-
-            for (let row = 0; row <= stockLength - panelHeight; row++) {
-              for (let col = 0; col <= stockWidth - panelWidth; col++) {
-                if (canFit(row, col, panelWidth, panelHeight)) {
-                  placePanel(row, col, panelWidth, panelHeight, panelText);
-                  placed = true;
-                  break;
-                }
-              }
-              if (placed) break;
-            }
-
-            if (!placed) {
-              setRemainingPanel([...remainingPanel, panel]);
-              break;
-            }
-          }
-        }
-        const totalWasteArea = stockLength * stockWidth - totalUsedArea;
-        const panelsTotal = rows.reduce(
-          (acc, panel) => acc + parseInt(panel.quantity),
-          0
-        );
-
-        results.push({
-          parentPanel,
-          parentLabel,
-          totalCutLength,
-          totalWasteArea,
-          panelsTotal,
-        });
-        return results;
-      }
-
       const result = optimizePanels(
         stockLength,
         stockWidth,
         rows,
-        panelThickness
+        panelThickness === "" ? 0 : panelThickness
       );
-      console.log(result);
+
       setPanelDivs(result[0].parentPanel);
       setPanelLabels(result[0].parentLabel);
       setTotalCutLength(result[0].totalCutLength);
