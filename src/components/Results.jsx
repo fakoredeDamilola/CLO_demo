@@ -16,7 +16,7 @@ const Results = (props) => {
         // , border: "1px solid black"
       }}
     >
-      {/* <TransformWrapper
+      <TransformWrapper
         initialPositionX={200}
         initialPositionY={100}
         maxScale={2} // Adjust the maximum scale as needed
@@ -25,56 +25,60 @@ const Results = (props) => {
       >
         {({zoomIn, zoomOut, resetTransform, ...rest}) => (
           <React.Fragment>
-           
-            <TransformComponent> */}
-      <div style={{width: "100%", height: "100%", background: "lightblue"}}>
-        <div
-          className="results panelContainer"
-          // style={{cursor: rest.isDragging ? "grabbing" : "grab"}}
-        >
-          <div
-            id="stockSheet"
-            className="stock-sheet"
-            style={{...stockSheetStyle, backgroundColor: "#D3D3D3"}}
-          >
-            <div className="dimension-label" style={{width: stockWidth + "px"}}>
-              {stockWidth}
-            </div>
-
-            {panelDivs.map((panelDiv, index) => {
-              const panelLabel = panelLabels[index];
-              return (
+            <TransformComponent>
+              <div
+                style={{width: "100%", height: "100%", background: "lightblue"}}
+              >
                 <div
-                  className="panelDiv panel"
-                  key={index}
-                  style={panelDiv.style}
+                  className="results panelContainer"
+                  // style={{cursor: rest.isDragging ? "grabbing" : "grab"}}
                 >
                   <div
-                    className="panelLabel"
-                    key={panelLabel.id}
-                    style={{
-                      ...panelLabel.style,
-                      background: "red",
-                    }}
+                    id="stockSheet"
+                    className="stock-sheet"
+                    style={{...stockSheetStyle, backgroundColor: "#D3D3D3"}}
                   >
-                    {panelLabel.width}{" "}
-                    <span className="dimension-arrow">&rarr;</span>
-                    {panelLabel.height}{" "}
-                    <span className="dimension-arrow">&darr;</span>
-                    <h3 className="panelText" style={{color: "black"}}>
-                      {panelText && panelLabel.panelText}
-                    </h3>
+                    <div
+                      className="dimension-label"
+                      style={{width: stockWidth + "px"}}
+                    >
+                      {stockWidth}
+                    </div>
+
+                    {panelDivs.map((panelDiv, index) => {
+                      const panelLabel = panelLabels[index];
+                      return (
+                        <div
+                          className="panelDiv panel"
+                          key={index}
+                          style={panelDiv.style}
+                        >
+                          <div
+                            className="panelLabel"
+                            key={panelLabel.id}
+                            style={{
+                              ...panelLabel.style,
+                              background: "red",
+                            }}
+                          >
+                            {panelLabel.width}{" "}
+                            <span className="dimension-arrow">&rarr;</span>
+                            {panelLabel.height}{" "}
+                            <span className="dimension-arrow">&darr;</span>
+                            <h3 className="panelText" style={{color: "black"}}>
+                              {panelText && panelLabel.panelText}
+                            </h3>
+                          </div>
+                        </div>
+                      );
+                    })}
                   </div>
                 </div>
-              );
-            })}
-          </div>
-        </div>
-      </div>
-      {/* </TransformComponent>
+              </div>
+            </TransformComponent>
           </React.Fragment>
         )}
-      </TransformWrapper> */}
+      </TransformWrapper>
     </div>
   );
 };

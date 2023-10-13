@@ -25,12 +25,72 @@ export function optimizePanels(stockLength, stockWidth, rows, panelMargin = 0) {
     }
     return true;
   }
+  // function placePanel(row, col, panelWidth, panelHeight, panelText, color, i) {
+  //   const margin = panelMargin ? parseInt(panelMargin) * i : 0;
+  //   console.log({margin, col});
+  //   for (let r = row; r < row + panelHeight; r++) {
+  //     for (let c = col; c < col + panelWidth; c++) {
+  //       matrix[r][c] = true;
+  //     }
+  //   }
+
+  //   const panelDiv = {
+  //     id: parseInt(Math.random() * row),
+  //     className: "panel",
+  //     style: {
+  //       width: panelWidth + "px",
+  //       height: panelHeight + "px",
+  //       left: col + margin + "px",
+  //       top: row + "px",
+  //       backgroundColor: color,
+  //     },
+  //   };
+
+  //   const panelLabel = {
+  //     id: parseInt(Math.random() * row),
+  //     className: "dimension-label",
+  //     style: {
+  //       width: panelWidth + "px",
+  //       height: panelHeight + "px",
+  //       left: col + "px",
+  //       top: row + "px",
+  //     },
+  //     panelText,
+  //     width: panelWidth,
+  //     height: panelHeight,
+  //   };
+
+  //   const area = panelWidth * panelHeight;
+  //   totalUsedArea += area;
+  //   parentPanel.push(panelDiv);
+  //   parentLabel.push(panelLabel);
+  //   const mar = panelMargin ? parseInt(panelMargin) * 2 : 0;
+  //   totalCutLength += panelWidth + panelHeight + mar; // Account for panel thickness
+  // }
+
   function placePanel(row, col, panelWidth, panelHeight, panelText, color, i) {
-    const margin = panelMargin ? parseInt(panelMargin) * i : 0;
+    const margin = panelMargin ? parseInt(panelMargin) : 0; // Parse margin here
     console.log({margin, col});
-    for (let r = row; r < row + panelHeight; r++) {
-      for (let c = col; c < col + panelWidth; c++) {
-        matrix[r][c] = true;
+
+    if (col > 0) {
+      col += margin; // Add margin to the left for panels that are not the first in a row
+    }
+
+    if (col + panelWidth + margin <= stockWidth) {
+      // If the panel with margin fits within the sheet width
+      for (let r = row; r < row + panelHeight; r++) {
+        for (let c = col; c < col + panelWidth; c++) {
+          matrix[r][c] = true;
+        }
+      }
+    } else {
+      // If the panel with margin overflows the sheet width, move to the next line
+      row += panelHeight + margin; // Move to the next line with margin
+      col = 0; // Reset the column to the beginning
+      for (let r = row; r < row + panelHeight; r++) {
+        for (let c = col; c < col + panelWidth; c++) {
+          matrix[r][c] = true;
+        }
       }
     }
 
@@ -40,7 +100,7 @@ export function optimizePanels(stockLength, stockWidth, rows, panelMargin = 0) {
       style: {
         width: panelWidth + "px",
         height: panelHeight + "px",
-        left: col + margin + "px",
+        left: col + "px",
         top: row + "px",
         backgroundColor: color,
       },
@@ -60,12 +120,11 @@ export function optimizePanels(stockLength, stockWidth, rows, panelMargin = 0) {
       height: panelHeight,
     };
 
-    const area = panelWidth * panelHeight;
+    const area = (panelWidth + margin) * (panelHeight + margin); // Account for margin in the area
     totalUsedArea += area;
     parentPanel.push(panelDiv);
     parentLabel.push(panelLabel);
-    const mar = panelMargin ? parseInt(panelMargin) * 2 : 0;
-    totalCutLength += panelWidth + panelHeight + mar; // Account for panel thickness
+    totalCutLength += panelWidth + panelHeight + margin; // Account for panel thickness and margin
   }
 
   for (const panel of rows) {
