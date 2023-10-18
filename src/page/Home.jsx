@@ -133,11 +133,11 @@ const Home = () => {
       //   panelThickness === "" ? 0 : panelThickness
       // );
       const result = optimizePanels(
-        [{width: "1000", height: "1000", quantity: 3}],
+        {width: "1000", length: "1000", quantity: 3},
         rows,
         panelThickness === "" ? 0 : panelThickness
       );
-      console.log(result[0]);
+      console.log(result);
       // setPanelDivs(result[0].parentPanel);
       // setPanelLabels(result[0].parentLabel);
       // setTotalCutLength(result[0].totalCutLength);
@@ -231,21 +231,20 @@ const Home = () => {
       />
       {/*  */}
       {/* <PlacementDetails placementDetails={placementDetails} /> */}
-      {results.map((result, index) => {
+      {/* {results.map((result, index) => {
         return (
           <div>
-            all sheets
-            <Results
-              key={index}
-              panelDivs={result.parentPanel}
-              panelLabels={result.parentLabel}
-              stockSheetStyle={result.stockSheetStyle}
+            all sheets */}
+           {results.parentLabel && <Results
+              panelDivs={results.parentPanel}
+              panelLabels={results.parentLabel}
+              stockSheetStyle={results.stockSheetStyle}
               stockWidth="1000"
-              panelText={result.panelText}
-            />
-          </div>
+              panelText={results.panelText}
+            />}
+          {/* </div>
         );
-      })}
+      })} */}
       {/* <Results
         panelDivs={panelDivs}
         panelLabels={panelLabels}
