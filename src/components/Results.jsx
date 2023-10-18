@@ -5,6 +5,7 @@ import {TransformWrapper, TransformComponent} from "react-zoom-pan-pinch";
 const Results = (props) => {
   const {stockWidth, stockSheetStyle, panelLabels, panelDivs, panelText} =
     props;
+  console.log({panelLabels, panelDivs});
   const containerRef = useRef(null);
 
   return (

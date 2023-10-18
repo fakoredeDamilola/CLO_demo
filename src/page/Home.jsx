@@ -26,6 +26,7 @@ const Home = () => {
     totalStockWidth: "",
     totalStockHeight: "",
   });
+  const [results, setResults] = useState([]);
   const [selectedFile, setSelectedFile] = useState(null);
 
   const handleFileChange = (e) => {
@@ -102,13 +103,7 @@ const Home = () => {
     console.log(12);
     let hasError = false;
     for (const {id, height, width, quantity} of rows) {
-      if (
-        height === "" ||
-        width === "" ||
-        quantity === "" ||
-        inputValues.totalStockHeight === "" ||
-        inputValues.totalStockWidth === ""
-      ) {
+      if (height === "" || width === "" || quantity === "") {
         hasError = true;
         break;
       }
@@ -131,17 +126,23 @@ const Home = () => {
       });
 
       setStockWidth(stockWidth);
+      // const result = optimizePanels(
+      //   stockLength,
+      //   stockWidth,
+      //   rows,
+      //   panelThickness === "" ? 0 : panelThickness
+      // );
       const result = optimizePanels(
-        stockLength,
-        stockWidth,
+        [{width: "1000", height: "1000", quantity: 3}],
         rows,
         panelThickness === "" ? 0 : panelThickness
       );
-
-      setPanelDivs(result[0].parentPanel);
-      setPanelLabels(result[0].parentLabel);
-      setTotalCutLength(result[0].totalCutLength);
-      setTotalWastedArea(result[0].totalWasteArea);
+      console.log(result[0]);
+      // setPanelDivs(result[0].parentPanel);
+      // setPanelLabels(result[0].parentLabel);
+      // setTotalCutLength(result[0].totalCutLength);
+      // setTotalWastedArea(result[0].totalWasteArea);
+      setResults(result[0]);
     }
   };
 
@@ -230,13 +231,28 @@ const Home = () => {
       />
       {/*  */}
       {/* <PlacementDetails placementDetails={placementDetails} /> */}
-      <Results
+      {results.map((result, index) => {
+        return (
+          <div>
+            all sheets
+            <Results
+              key={index}
+              panelDivs={result.parentPanel}
+              panelLabels={result.parentLabel}
+              stockSheetStyle={result.stockSheetStyle}
+              stockWidth="1000"
+              panelText={result.panelText}
+            />
+          </div>
+        );
+      })}
+      {/* <Results
         panelDivs={panelDivs}
         panelLabels={panelLabels}
         stockSheetStyle={stockSheetStyle}
         stockWidth={stockWidth}
         panelText={panelLabel}
-      />
+      /> */}
     </div>
   );
 };
