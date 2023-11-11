@@ -1,10 +1,10 @@
-import React, {useState} from "react";
+import React, { useState } from "react";
 import Worksheet from "../components/Worksheet";
 import Stocksheet from "../components/Stocksheet";
 import Results from "../components/Results";
 import Options from "../components/Options";
-import {read, utils} from "xlsx";
-import {optimizePanels} from "../utils/functions";
+import { read, utils } from "xlsx";
+import { optimizePanels } from "../utils/functions";
 // import {v4 as uuidv4} from "uuid";
 
 const Home = () => {
@@ -14,7 +14,7 @@ const Home = () => {
   const [totalCutLength, setTotalCutLength] = useState(0);
   const [usedStockSheets, setUsedStockSheets] = useState("");
   const [rows, setRows] = useState([
-    {id: 1, height: "", quantity: "", label: "", width: "", result: ""},
+    { id: 1, height: "", quantity: "", label: "", width: "", result: "" },
   ]);
   const [remainingPanel, setRemainingPanel] = useState([]);
   const [panelThickness, setPanelThickness] = useState("0");
@@ -26,7 +26,7 @@ const Home = () => {
     totalStockWidth: "",
     totalStockHeight: "",
   });
-  const [results, setResults] = useState([]);
+  const [results, setResults] = useState({ parentPanels: [] });
   const [selectedFile, setSelectedFile] = useState(null);
 
   const handleFileChange = (e) => {
@@ -49,10 +49,10 @@ const Home = () => {
         const reader = new FileReader();
         reader.onload = (e) => {
           const binaryData = e.target.result;
-          const workbook = read(binaryData, {type: "binary"});
+          const workbook = read(binaryData, { type: "binary" });
           const sheetName = workbook.SheetNames[0];
           const sheet = workbook.Sheets[sheetName];
-          const sheetData = utils.sheet_to_json(sheet, {header: 1});
+          const sheetData = utils.sheet_to_json(sheet, { header: 1 });
 
           // Assuming the first row contains headers
           const headers = sheetData[0];
@@ -70,7 +70,7 @@ const Home = () => {
 
           // Set the parsed data in state
           // setData(parsedData);
-          console.log({parsedData});
+          console.log({ parsedData });
           const dataNeeded = parsedData.map((data) => ({
             height: data.height ?? "",
             quantity: data.quantity ?? "",
@@ -96,13 +96,13 @@ const Home = () => {
     height: "0",
   });
   const [stockRows, setStockRows] = useState([
-    {id: 1, height: "", quantity: "", width: "", label: "", result: ""},
+    { id: 1, height: "", quantity: "", width: "", label: "", result: "" },
   ]);
 
   const optimizeData = () => {
     console.log(12);
     let hasError = false;
-    for (const {id, height, width, quantity} of rows) {
+    for (const { id, height, width, quantity } of rows) {
       if (height === "" || width === "" || quantity === "") {
         hasError = true;
         break;
@@ -133,11 +133,11 @@ const Home = () => {
       //   panelThickness === "" ? 0 : panelThickness
       // );
       const result = optimizePanels(
-        {width: "1000", length: "1000", quantity: 3},
+        { width: stockLength, length: stockWidth, quantity: 3 },
         rows,
         panelThickness === "" ? 0 : panelThickness
       );
-      console.log(result);
+      console.log({ result });
       // setPanelDivs(result[0].parentPanel);
       // setPanelLabels(result[0].parentLabel);
       // setTotalCutLength(result[0].totalCutLength);
@@ -166,7 +166,7 @@ const Home = () => {
         <input
           type="file"
           id="fileInput"
-          style={{display: "none"}}
+          style={{ display: "none" }}
           accept=".xlsx, .xls"
           onChange={handleFileChange}
         />
@@ -235,23 +235,28 @@ const Home = () => {
         return (
           <div>
             all sheets */}
-           {results.parentLabel && <Results
-              panelDivs={results.parentPanel}
-              panelLabels={results.parentLabel}
-              stockSheetStyle={results.stockSheetStyle}
+      {/* {results.parentLabel && (
+        <Results
+          panelDivs={results.parentPanel}
+          panelLabels={results.parentLabel}
+          stockSheetStyle={results.stockSheetStyle}
+          stockWidth="1000"
+          panelText={results.panelText}
+        />
+      )} */}
+      {results.parentPanels &&
+        results.parentPanels.map((result) => {
+          console.log({ result });
+          return (
+            <Results
+              panelDivs={result.parentPanel}
+              panelLabels={result.parentLabel}
+              stockSheetStyle={"red"}
               stockWidth="1000"
-              panelText={results.panelText}
-            />}
-          {/* </div>
-        );
-      })} */}
-      {/* <Results
-        panelDivs={panelDivs}
-        panelLabels={panelLabels}
-        stockSheetStyle={stockSheetStyle}
-        stockWidth={stockWidth}
-        panelText={panelLabel}
-      /> */}
+              panelText={"blue"}
+            />
+          );
+        })}
     </div>
   );
 };
