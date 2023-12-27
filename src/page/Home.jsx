@@ -1,10 +1,10 @@
-import React, {useState} from "react";
+import React, { useState } from "react";
 import Worksheet from "../components/Worksheet";
 import Stocksheet from "../components/Stocksheet";
 import Results from "../components/Results";
 import Options from "../components/Options";
-import {read, utils} from "xlsx";
-import {optimizePanels} from "../utils/functions";
+import { read, utils } from "xlsx";
+import { optimizePanels } from "../utils/functions";
 // import {v4 as uuidv4} from "uuid";
 
 const Home = () => {
@@ -14,7 +14,7 @@ const Home = () => {
   const [totalCutLength, setTotalCutLength] = useState(0);
   const [usedStockSheets, setUsedStockSheets] = useState("");
   const [rows, setRows] = useState([
-    {id: 1, height: "", quantity: "", label: "", width: "", result: ""},
+    { id: 1, height: "", quantity: "", label: "", width: "", result: "" },
   ]);
   const [remainingPanel, setRemainingPanel] = useState([]);
   const [panelThickness, setPanelThickness] = useState("0");
@@ -26,7 +26,7 @@ const Home = () => {
     totalStockWidth: "",
     totalStockHeight: "",
   });
-  const [results, setResults] = useState([]);
+  const [results, setResults] = useState({ parentPanels: [] });
   const [selectedFile, setSelectedFile] = useState(null);
 
   const handleFileChange = (e) => {
@@ -49,10 +49,10 @@ const Home = () => {
         const reader = new FileReader();
         reader.onload = (e) => {
           const binaryData = e.target.result;
-          const workbook = read(binaryData, {type: "binary"});
+          const workbook = read(binaryData, { type: "binary" });
           const sheetName = workbook.SheetNames[0];
           const sheet = workbook.Sheets[sheetName];
-          const sheetData = utils.sheet_to_json(sheet, {header: 1});
+          const sheetData = utils.sheet_to_json(sheet, { header: 1 });
 
           // Assuming the first row contains headers
           const headers = sheetData[0];
@@ -70,7 +70,7 @@ const Home = () => {
 
           // Set the parsed data in state
           // setData(parsedData);
-          console.log({parsedData});
+          console.log({ parsedData });
           const dataNeeded = parsedData.map((data) => ({
             height: data.height ?? "",
             quantity: data.quantity ?? "",
@@ -96,55 +96,13 @@ const Home = () => {
     height: "0",
   });
   const [stockRows, setStockRows] = useState([
-    {id: 1, height: "", quantity: "", width: "", label: "", result: ""},
+    { id: 1, height: "", quantity: "", width: "", label: "", result: "" },
   ]);
 
-  const optimizeData = () => {
-    console.log(12);
-    let hasError = false;
-    for (const {id, height, width, quantity} of rows) {
-      if (height === "" || width === "" || quantity === "") {
-        hasError = true;
-        break;
-      }
-    }
-
-    if (hasError) {
-      alert("Please fill in all input fields before saving.");
-    } else {
-      const stockLength = inputValues.totalStockHeight;
-      const stockWidth = inputValues.totalStockWidth;
-
-      rows.sort((rowA, rowB) => {
-        const areaA = parseInt(rowA.length) * parseInt(rowA.width);
-        const areaB = parseInt(rowB.length) * parseInt(rowB.width);
-        return areaB - areaA;
-      });
-      setStockSheetStyle({
-        width: stockWidth + "px",
-        height: stockLength + "px",
-      });
-
-      setStockWidth(stockWidth);
-      // const result = optimizePanels(
-      //   stockLength,
-      //   stockWidth,
-      //   rows,
-      //   panelThickness === "" ? 0 : panelThickness
-      // );
-      const result = optimizePanels(
-        [{width: "1000", height: "1000", quantity: 3}],
-        rows,
-        panelThickness === "" ? 0 : panelThickness
-      );
-      console.log(result[0]);
-      // setPanelDivs(result[0].parentPanel);
-      // setPanelLabels(result[0].parentLabel);
-      // setTotalCutLength(result[0].totalCutLength);
-      // setTotalWastedArea(result[0].totalWasteArea);
-      setResults(result[0]);
-    }
-  };
+  function optimizeData() {
+    const propertyObject = optimizePanels(rows, stockRows);
+    console.log({ propertyObject });
+  }
 
   return (
     <div className="container">
@@ -158,7 +116,6 @@ const Home = () => {
         rows={rows}
         panelLabel={panelLabel}
         setRows={setRows}
-        optimizeData={optimizeData}
         inputValues={inputValues}
         setInputValues={setInputValues}
       />
@@ -166,7 +123,7 @@ const Home = () => {
         <input
           type="file"
           id="fileInput"
-          style={{display: "none"}}
+          style={{ display: "none" }}
           accept=".xlsx, .xls"
           onChange={handleFileChange}
         />
@@ -181,6 +138,48 @@ const Home = () => {
           </button>
         )}
       </div>
+      <div className="row border bg-light pt-4">
+        <div className="col-md-5">
+          <div className="form-group">
+            <label for="cutThickness">Cut / Blade / Kerf Thickness:</label>
+            <input
+              type="text"
+              id="cutThickness"
+              name="cutThickness"
+              min="1"
+              value="1"
+            />
+          </div>
+        </div>
+
+        <div className="col-md-3">
+          <div className="form-group">
+            <label for="panelLabels">Labels on Panels:</label>
+            <label className="switch">
+              <input type="checkbox" id="panelLabels" name="panelLabels" />
+              <span className="slider"></span>
+            </label>
+          </div>
+        </div>
+
+        <div className="col-md-4">
+          <div className="form-group">
+            <label for="singleSheet">Use Only One Sheet from Stock:</label>
+            <label className="switch">
+              <input type="checkbox" id="singleSheet" name="singleSheet" />
+              <span className="slider"></span>
+            </label>
+          </div>
+        </div>
+      </div>
+      <br />
+      <button
+        className="btn btn-primary mt-2 col-md-12"
+        id="showInfo"
+        onClick={optimizeData}
+      >
+        Calculate
+      </button>
       <div>
         <p>
           Used stock sheets:{" "}
@@ -231,28 +230,58 @@ const Home = () => {
       />
       {/*  */}
       {/* <PlacementDetails placementDetails={placementDetails} /> */}
-      {results.map((result, index) => {
+      {/* {results.map((result, index) => {
         return (
           <div>
-            all sheets
+            all sheets */}
+      {/* {results.parentLabel && (
+        <Results
+          panelDivs={results.parentPanel}
+          panelLabels={results.parentLabel}
+          stockSheetStyle={results.stockSheetStyle}
+          stockWidth="1000"
+          panelText={results.panelText}
+        />
+      )} */}
+      {/* {results.parentPanels &&
+        results.parentPanels.map((result) => {
+          console.log({ result });
+          return (
             <Results
-              key={index}
               panelDivs={result.parentPanel}
               panelLabels={result.parentLabel}
-              stockSheetStyle={result.stockSheetStyle}
+              stockSheetStyle={"red"}
               stockWidth="1000"
-              panelText={result.panelText}
+              panelText={"blue"}
             />
+          );
+        })} */}
+      <div className="col">
+        <h2>Drawing / Visualization:</h2>
+        <div>
+          <div id="labels">
+            <h6>Dimension (L x W)</h6>
           </div>
-        );
-      })}
-      {/* <Results
-        panelDivs={panelDivs}
-        panelLabels={panelLabels}
-        stockSheetStyle={stockSheetStyle}
-        stockWidth={stockWidth}
-        panelText={panelLabel}
-      /> */}
+          <div id="svgContainer"></div>
+
+          <p id="ede"></p>
+
+          <p></p>
+        </div>
+        <br />
+        <div className="container">
+          <div id="result" className="sheets"></div>
+        </div>
+        <div className="container">
+          <div id="drawingArea" className="sheets"></div>
+        </div>
+      </div>
+      <canvas
+        id="outerCanvas"
+        style={{ borderColor: "black" }}
+        width="100"
+        height="100"
+      ></canvas>
     </div>
   );
 };
