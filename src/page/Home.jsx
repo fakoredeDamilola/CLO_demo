@@ -99,52 +99,10 @@ const Home = () => {
     { id: 1, height: "", quantity: "", width: "", label: "", result: "" },
   ]);
 
-  const optimizeData = () => {
-    console.log(12);
-    let hasError = false;
-    for (const { id, height, width, quantity } of rows) {
-      if (height === "" || width === "" || quantity === "") {
-        hasError = true;
-        break;
-      }
-    }
-
-    if (hasError) {
-      alert("Please fill in all input fields before saving.");
-    } else {
-      const stockLength = inputValues.totalStockHeight;
-      const stockWidth = inputValues.totalStockWidth;
-
-      rows.sort((rowA, rowB) => {
-        const areaA = parseInt(rowA.length) * parseInt(rowA.width);
-        const areaB = parseInt(rowB.length) * parseInt(rowB.width);
-        return areaB - areaA;
-      });
-      setStockSheetStyle({
-        width: stockWidth + "px",
-        height: stockLength + "px",
-      });
-
-      setStockWidth(stockWidth);
-      // const result = optimizePanels(
-      //   stockLength,
-      //   stockWidth,
-      //   rows,
-      //   panelThickness === "" ? 0 : panelThickness
-      // );
-      const result = optimizePanels(
-        { width: stockLength, length: stockWidth, quantity: 3 },
-        rows,
-        panelThickness === "" ? 0 : panelThickness
-      );
-      console.log({ result });
-      // setPanelDivs(result[0].parentPanel);
-      // setPanelLabels(result[0].parentLabel);
-      // setTotalCutLength(result[0].totalCutLength);
-      // setTotalWastedArea(result[0].totalWasteArea);
-      setResults(result[0]);
-    }
-  };
+  function optimizeData() {
+    const propertyObject = optimizePanels(rows, stockRows);
+    console.log({ propertyObject });
+  }
 
   return (
     <div className="container">
@@ -158,7 +116,6 @@ const Home = () => {
         rows={rows}
         panelLabel={panelLabel}
         setRows={setRows}
-        optimizeData={optimizeData}
         inputValues={inputValues}
         setInputValues={setInputValues}
       />
@@ -181,6 +138,48 @@ const Home = () => {
           </button>
         )}
       </div>
+      <div className="row border bg-light pt-4">
+        <div className="col-md-5">
+          <div className="form-group">
+            <label for="cutThickness">Cut / Blade / Kerf Thickness:</label>
+            <input
+              type="text"
+              id="cutThickness"
+              name="cutThickness"
+              min="1"
+              value="1"
+            />
+          </div>
+        </div>
+
+        <div className="col-md-3">
+          <div className="form-group">
+            <label for="panelLabels">Labels on Panels:</label>
+            <label className="switch">
+              <input type="checkbox" id="panelLabels" name="panelLabels" />
+              <span className="slider"></span>
+            </label>
+          </div>
+        </div>
+
+        <div className="col-md-4">
+          <div className="form-group">
+            <label for="singleSheet">Use Only One Sheet from Stock:</label>
+            <label className="switch">
+              <input type="checkbox" id="singleSheet" name="singleSheet" />
+              <span className="slider"></span>
+            </label>
+          </div>
+        </div>
+      </div>
+      <br />
+      <button
+        className="btn btn-primary mt-2 col-md-12"
+        id="showInfo"
+        onClick={optimizeData}
+      >
+        Calculate
+      </button>
       <div>
         <p>
           Used stock sheets:{" "}
@@ -244,7 +243,7 @@ const Home = () => {
           panelText={results.panelText}
         />
       )} */}
-      {results.parentPanels &&
+      {/* {results.parentPanels &&
         results.parentPanels.map((result) => {
           console.log({ result });
           return (
@@ -256,7 +255,33 @@ const Home = () => {
               panelText={"blue"}
             />
           );
-        })}
+        })} */}
+      <div className="col">
+        <h2>Drawing / Visualization:</h2>
+        <div>
+          <div id="labels">
+            <h6>Dimension (L x W)</h6>
+          </div>
+          <div id="svgContainer"></div>
+
+          <p id="ede"></p>
+
+          <p></p>
+        </div>
+        <br />
+        <div className="container">
+          <div id="result" className="sheets"></div>
+        </div>
+        <div className="container">
+          <div id="drawingArea" className="sheets"></div>
+        </div>
+      </div>
+      <canvas
+        id="outerCanvas"
+        style={{ borderColor: "black" }}
+        width="100"
+        height="100"
+      ></canvas>
     </div>
   );
 };

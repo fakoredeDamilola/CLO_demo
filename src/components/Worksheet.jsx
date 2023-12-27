@@ -1,11 +1,10 @@
-import React, {useEffect, useState} from "react";
+import React, { useEffect, useState } from "react";
 
-import {Button} from "react-bootstrap";
+import { Button } from "react-bootstrap";
 import InputRows from "./InputRows";
 
 const Worksheet = (props) => {
-  const {optimizeData, rows, setRows, inputValues, setInputValues, panelLabel} =
-    props;
+  const { rows, setRows, inputValues, setInputValues, panelLabel } = props;
   const addRow = () => {
     const initialRow = {
       id: "",
@@ -32,10 +31,10 @@ const Worksheet = (props) => {
   };
 
   const handleDataChange = (e, id) => {
-    const {name, value} = e.target;
+    const { name, value } = e.target;
     const updatedRows = rows.map((row) => {
       if (row.id === id) {
-        return {...row, [name]: value};
+        return { ...row, [name]: value };
       }
       return row;
     });
@@ -85,20 +84,6 @@ const Worksheet = (props) => {
         addRow={addRow}
         name="Panels"
       />
-
-      <Button
-        onClick={optimizeData}
-        className="me-lg-2 me-sm-0"
-        variant="success"
-      >
-        <img
-          alt=""
-          width="30"
-          height="30"
-          className="d-inline-block align-top"
-        />{" "}
-        Calculate
-      </Button>
     </div>
   );
 };
