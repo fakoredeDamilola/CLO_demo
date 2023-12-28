@@ -1,32 +1,31 @@
 import React, { useState } from "react";
 import Worksheet from "../components/Worksheet";
 import Stocksheet from "../components/Stocksheet";
-import Results from "../components/Results";
-import Options from "../components/Options";
+// import Options from "../components/Options";
 import { read, utils } from "xlsx";
+
 import { optimizePanels } from "../utils/functions";
 // import {v4 as uuidv4} from "uuid";
 
 const Home = () => {
-  const [panelDivs, setPanelDivs] = useState([]);
-  const [panelLabels, setPanelLabels] = useState([]);
-  const [stockWidth, setStockWidth] = useState(0);
   const [totalCutLength, setTotalCutLength] = useState(0);
   const [usedStockSheets, setUsedStockSheets] = useState("");
   const [rows, setRows] = useState([
     { id: 1, height: "", quantity: "", label: "", width: "", result: "" },
   ]);
-  const [remainingPanel, setRemainingPanel] = useState([]);
   const [panelThickness, setPanelThickness] = useState("0");
-  const [panelLabel, setPanelLabel] = useState(true);
+  const [panelLabel, setPanelLabel] = useState(false);
+  const [totalArea, setTotalArea] = useState("");
   const [totalUsedArea, setTotalUsedArea] = useState("");
+  const [totalUsedAreaPercentage, setTotalUsedAreaPercentage] = useState("");
   const [totalWastedArea, setTotalWastedArea] = useState("");
+  const [totalWastedAreaPercentage, setTotalWastedAreaPercentage] =
+    useState("");
   const [totalCuts, setTotalCuts] = useState("");
   const [inputValues, setInputValues] = useState({
     totalStockWidth: "",
     totalStockHeight: "",
   });
-  const [results, setResults] = useState({ parentPanels: [] });
   const [selectedFile, setSelectedFile] = useState(null);
 
   const handleFileChange = (e) => {
@@ -90,18 +89,12 @@ const Home = () => {
       }
     }
   };
-
-  const [stockSheetStyle, setStockSheetStyle] = useState({
-    width: "0",
-    height: "0",
-  });
   const [stockRows, setStockRows] = useState([
     { id: 1, height: "", quantity: "", width: "", label: "", result: "" },
   ]);
 
   function optimizeData() {
-    const propertyObject = optimizePanels(rows, stockRows);
-    console.log({ propertyObject });
+    optimizePanels(rows, stockRows, panelLabel, panelThickness);
   }
 
   return (
@@ -111,14 +104,16 @@ const Home = () => {
         stockRows={stockRows}
         panelLabel={panelLabel}
       />
+      <div style={{ margin: "30px 0" }}>
+        <Worksheet
+          rows={rows}
+          panelLabel={panelLabel}
+          setRows={setRows}
+          inputValues={inputValues}
+          setInputValues={setInputValues}
+        />
+      </div>
 
-      <Worksheet
-        rows={rows}
-        panelLabel={panelLabel}
-        setRows={setRows}
-        inputValues={inputValues}
-        setInputValues={setInputValues}
-      />
       <div className="custom-upload-container">
         <input
           type="file"
@@ -147,7 +142,8 @@ const Home = () => {
               id="cutThickness"
               name="cutThickness"
               min="1"
-              value="1"
+              onChange={(e) => setPanelThickness(e.target.value)}
+              value={panelThickness}
             />
           </div>
         </div>
@@ -156,7 +152,12 @@ const Home = () => {
           <div className="form-group">
             <label for="panelLabels">Labels on Panels:</label>
             <label className="switch">
-              <input type="checkbox" id="panelLabels" name="panelLabels" />
+              <input
+                type="checkbox"
+                onChange={(e) => setPanelLabel(!panelLabel)}
+                id="panelLabels"
+                name="panelLabels"
+              />
               <span className="slider"></span>
             </label>
           </div>
@@ -187,8 +188,12 @@ const Home = () => {
             value={usedStockSheets}
             type="text"
             id="usedStockSheets"
-            readonly
+            disabled
           />
+        </p>
+        <p>
+          Total area:{" "}
+          <input type="text" value={totalArea} id="totalArea" disabled />
         </p>
         <p>
           Total used area:{" "}
@@ -196,7 +201,16 @@ const Home = () => {
             type="text"
             value={totalUsedArea}
             id="totalUsedArea"
-            readonly
+            disabled
+          />
+        </p>
+        <p>
+          Total used Area Percentage:{" "}
+          <input
+            type="text"
+            value={totalUsedAreaPercentage}
+            id="totalUsedAreaPercentage"
+            disabled
           />
         </p>
         <p>
@@ -205,12 +219,21 @@ const Home = () => {
             value={totalWastedArea}
             type="text"
             id="totalWastedArea"
-            readonly
+            disabled
+          />
+        </p>
+        <p>
+          Total wasted area percentage:{" "}
+          <input
+            value={totalWastedAreaPercentage}
+            type="text"
+            id="totalWastedAreaPercentage"
+            disabled
           />
         </p>
         <p>
           Total cuts:{" "}
-          <input value={totalCuts} type="text" id="totalCuts" readonly />
+          <input value={totalCuts} type="text" id="totalCuts" disabled />
         </p>
         <p>
           Total cut length:{" "}
@@ -218,44 +241,11 @@ const Home = () => {
             value={totalCutLength}
             type="text"
             id="totalCutLength"
-            readonly
+            disabled
           />
         </p>
       </div>
-      <Options
-        panelLabel={panelLabel}
-        setPanelLabel={setPanelLabel}
-        panelThickness={panelThickness}
-        setPanelThickness={setPanelThickness}
-      />
-      {/*  */}
-      {/* <PlacementDetails placementDetails={placementDetails} /> */}
-      {/* {results.map((result, index) => {
-        return (
-          <div>
-            all sheets */}
-      {/* {results.parentLabel && (
-        <Results
-          panelDivs={results.parentPanel}
-          panelLabels={results.parentLabel}
-          stockSheetStyle={results.stockSheetStyle}
-          stockWidth="1000"
-          panelText={results.panelText}
-        />
-      )} */}
-      {/* {results.parentPanels &&
-        results.parentPanels.map((result) => {
-          console.log({ result });
-          return (
-            <Results
-              panelDivs={result.parentPanel}
-              panelLabels={result.parentLabel}
-              stockSheetStyle={"red"}
-              stockWidth="1000"
-              panelText={"blue"}
-            />
-          );
-        })} */}
+
       <div className="col">
         <h2>Drawing / Visualization:</h2>
         <div>

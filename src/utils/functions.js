@@ -1,4 +1,4 @@
-export function optimizePanels(rows, stockRows) {
+export function optimizePanels(rows, stockRows, panelLabel, panelThickness) {
   console.log({ rows, stockRows });
   const panelData = [];
   const panelGroupColors = {};
@@ -18,7 +18,7 @@ export function optimizePanels(rows, stockRows) {
     const width = parseInt(row.width);
     const quantity = parseInt(row.quantity);
     console.log({ quantity, length, width });
-    for (let i = 0; i <= quantity; i++) {
+    for (let i = 1; i <= quantity; i++) {
       panelData.push({
         pid: `${panelData.length + 1}`,
         panelGroup: `${name}`,
@@ -268,32 +268,21 @@ export function optimizePanels(rows, stockRows) {
       let TA = TAused + remArea;
       let percent = (TAused / TA) * 100;
 
-      // document.getElementById("totalArea").value = TA;
-      // document.getElementById("totalUsedArea").value = TAused;
-      // document.getElementById("totalUsedAreaPercentage").value =
-      //   percent.toFixed(1);
-      // document.getElementById("totalWastedArea").value = remArea;
-      // document.getElementById("totalWastedAreaPercentage").value = (
-      //   100 - percent
-      // ).toFixed(1);
-      propertyObject = {
-        totalArea: TA,
-        totalUsedArea: TAused,
-        totalUsedAreaPercentage: percent.toFixed(1),
-        totalWastedArea: remArea,
-        totalWastedAreaPercentage: (100 - percent).toFixed(1),
-      };
-      const panelLabels = document.getElementById("panelLabels").checked
-        ? "on"
-        : "off";
-      const cutThickness = document.getElementById("cutThickness").value;
+      document.getElementById("totalArea").value = TA;
+      document.getElementById("totalUsedArea").value = TAused;
+      document.getElementById("totalUsedAreaPercentage").value =
+        percent.toFixed(1);
+      document.getElementById("totalWastedArea").value = remArea;
+      document.getElementById("totalWastedAreaPercentage").value = (
+        100 - percent
+      ).toFixed(1);
 
-      if (panelLabels == "on") {
+      if (panelLabel) {
         svgString += `<rect x="${panel.x}" y="${panel.y}" width="${
           panel.width
         }" height="${panel.length}" fill="${
           panel.panelColor
-        }" stroke="black" stroke-width="${cutThickness}" class="panel-rect">
+        }" stroke="black" stroke-width="${panelThickness}" class="panel-rect">
           <title>${panel.panelName}: ${panel.length} x ${
           panel.width
         }, Rotation: ${panel.rotation}, Panel (XY): ${panel.x} ${
@@ -304,7 +293,7 @@ export function optimizePanels(rows, stockRows) {
           panel.panelName
         }</text>`;
       } else {
-        svgString += `<rect x="${panel.x}" y="${panel.y}" width="${panel.width}" height="${panel.length}" fill="${panel.panelColor}" stroke="black" stroke-width="${cutThickness}" class="panel-rect">
+        svgString += `<rect x="${panel.x}" y="${panel.y}" width="${panel.width}" height="${panel.length}" fill="${panel.panelColor}" stroke="black" stroke-width="${panelThickness}" class="panel-rect">
         <title>${panel.panelName}: ${panel.length} x ${panel.width}, Rotation: ${panel.rotation}, Panel (XY): ${panel.x} ${panel.y}</title>
       </rect>`;
       }
