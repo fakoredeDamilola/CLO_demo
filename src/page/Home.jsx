@@ -94,7 +94,12 @@ const Home = () => {
   ]);
 
   function optimizeData() {
-    optimizePanels(rows, stockRows, panelLabel, panelThickness);
+    optimizePanels(
+      rows,
+      stockRows,
+      panelLabel,
+      panelThickness >= 0 ? 1 : panelThickness
+    );
   }
 
   return (

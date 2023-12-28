@@ -1,5 +1,4 @@
 export function optimizePanels(rows, stockRows, panelLabel, panelThickness) {
-  console.log({ rows, stockRows });
   const panelData = [];
   const panelGroupColors = {};
   let propertyObject = {};
