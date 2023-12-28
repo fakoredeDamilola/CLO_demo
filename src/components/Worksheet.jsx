@@ -54,26 +54,6 @@ const Worksheet = (props) => {
 
   return (
     <div>
-      <p>
-        Sheet Width:{" "}
-        <input
-          value={inputValues.totalStockWidth}
-          type="text"
-          id="totalStockWidth"
-          name="totalStockWidth"
-          onChange={handleChange}
-        />
-      </p>
-      <p>
-        Sheet Height:{" "}
-        <input
-          value={inputValues.totalStockHeight}
-          type="text"
-          id="totalStockHeight"
-          name="totalStockHeight"
-          onChange={handleChange}
-        />
-      </p>
       <InputRows
         handleDataChange={handleDataChange}
         handleInputFocus={handleInputFocus}
