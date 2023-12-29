@@ -1,11 +1,9 @@
 import React, { useState } from "react";
 import Worksheet from "../components/Worksheet";
 import Stocksheet from "../components/Stocksheet";
-// import Options from "../components/Options";
 import { read, utils } from "xlsx";
 
 import { optimizePanels } from "../utils/functions";
-// import {v4 as uuidv4} from "uuid";
 
 const Home = () => {
   const [totalCutLength, setTotalCutLength] = useState(0);
@@ -13,6 +11,7 @@ const Home = () => {
   const [rows, setRows] = useState([
     { id: 1, height: "", quantity: "", label: "", width: "", result: "" },
   ]);
+  const [unit, setUnit] = useState("in");
   const [panelThickness, setPanelThickness] = useState("0");
   const [panelLabel, setPanelLabel] = useState(false);
   const [totalArea, setTotalArea] = useState("");
@@ -98,7 +97,8 @@ const Home = () => {
       rows,
       stockRows,
       panelLabel,
-      panelThickness >= 0 ? 1 : panelThickness
+      panelThickness >= 0 ? 1 : panelThickness,
+      unit
     );
   }
 
@@ -175,6 +175,27 @@ const Home = () => {
               <input type="checkbox" id="singleSheet" name="singleSheet" />
               <span className="slider"></span>
             </label>
+          </div>
+        </div>
+        <div class="col-md-3">
+          <div class="form-group">
+            <label for="panelDimension">Dimension for Stock & panel</label>
+            <select
+              class="custom-select"
+              onChange={(e) => setUnit(e.target.value)}
+              value={unit}
+              id="unitSelect"
+              name="unitSelect"
+            >
+              <option value="mm">Millimeter (mm)</option>
+              <option value="cm">Centimeter (cm)</option>
+              <option value="m">Meter (m)</option>
+              <option value="in">Inch (in)</option>
+              <option value="ft">Foot (ft)</option>
+              <option value="yd">Yard (yd)</option>
+              <option value="pt">Point (pt)</option>
+              <option value="px">Pixel (px)</option>
+            </select>
           </div>
         </div>
       </div>
@@ -271,12 +292,6 @@ const Home = () => {
           <div id="drawingArea" className="sheets"></div>
         </div>
       </div>
-      <canvas
-        id="outerCanvas"
-        style={{ borderColor: "black" }}
-        width="100"
-        height="100"
-      ></canvas>
     </div>
   );
 };

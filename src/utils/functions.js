@@ -1,4 +1,10 @@
-export function optimizePanels(rows, stockRows, panelLabel, panelThickness) {
+export function optimizePanels(
+  rows,
+  stockRows,
+  panelLabel,
+  panelThickness,
+  unitSelect
+) {
   const panelData = [];
   const panelGroupColors = {};
   let propertyObject = {};
@@ -6,7 +12,6 @@ export function optimizePanels(rows, stockRows, panelLabel, panelThickness) {
   let sheetInfo = "Sheet Information:<br>";
   let detailInfo = "Detail Information:<br>-------<br>";
   rows.forEach((row, index) => {
-    console.log({ row, index });
     const name = row.label;
 
     if (!panelGroupColors[name]) {
@@ -16,7 +21,6 @@ export function optimizePanels(rows, stockRows, panelLabel, panelThickness) {
     const length = parseInt(row.height);
     const width = parseInt(row.width);
     const quantity = parseInt(row.quantity);
-    console.log({ quantity, length, width });
     for (let i = 1; i <= quantity; i++) {
       panelData.push({
         pid: `${panelData.length + 1}`,
@@ -33,7 +37,6 @@ export function optimizePanels(rows, stockRows, panelLabel, panelThickness) {
     // }
   });
 
-  console.log({ panelData });
   const sheetData = [];
   stockRows.forEach((row) => {
     const name = row.label;
@@ -58,7 +61,6 @@ export function optimizePanels(rows, stockRows, panelLabel, panelThickness) {
   });
 
   function bestFitDecreasing(panels, sheets) {
-    // console.clear();
     const sortedPanels = panels.sort(
       (a, b) =>
         parseInt(b.length) * parseInt(b.width) -
@@ -127,9 +129,6 @@ export function optimizePanels(rows, stockRows, panelLabel, panelThickness) {
                       const remainingLength = sheet.length - row - length;
                       const remainingWidth = sheet.width - col - width;
 
-                      // Log placement details
-                      // console.log(`Panel (${panel.panel}) ==> ${length} x ${width} is placed on Sheet (${sheet.sheet}) ${sheet.length} x ${sheet.width}. Area used: ${areaUsed}, Remaining area: ${remainingArea}, Remaining length: ${remainingLength}, Remaining width: ${remainingWidth}`);
-
                       detailInfo += `Panel (${
                         panel.panel
                       }) ==> ${length} x ${width} ${
@@ -144,7 +143,6 @@ export function optimizePanels(rows, stockRows, panelLabel, panelThickness) {
                         panel.color
                       })<br>-----------<br>`;
 
-                      // console.log(`${panel.panelGroup}, ${panel.color}`);
                       break;
                     }
                   }
@@ -159,7 +157,6 @@ export function optimizePanels(rows, stockRows, panelLabel, panelThickness) {
         const allPlaced = sortedPanels.every((panel) => panel.placed);
         if (allPlaced) {
           sheet.placed = true;
-          // console.log(`All panels placed on Sheet (${sheet.sid})`);
         }
       }
     }
@@ -185,7 +182,6 @@ export function optimizePanels(rows, stockRows, panelLabel, panelThickness) {
     if (panel.placed === true) {
       totalCuts++;
     }
-    console.log({ totalCuts });
 
     panelInfo += `pid: ${panel.pid} panel: ${panel.panel} - Length: ${
       panel.length
@@ -194,16 +190,11 @@ export function optimizePanels(rows, stockRows, panelLabel, panelThickness) {
 
   let totalSheetWidth = 0;
   let totalSheetLength = 0;
-  let canvas = document.getElementById("outerCanvas");
-  let ctx = canvas.getContext("2d");
 
   sheetData.forEach((sheet) => {
     totalSheetWidth += parseInt(sheet.width);
     totalSheetLength += parseInt(sheet.length);
   });
-
-  canvas.height = 20;
-  canvas.width = 20;
 
   const panels = [];
   let TAused = 0;
@@ -259,50 +250,64 @@ export function optimizePanels(rows, stockRows, panelLabel, panelThickness) {
     const sheetWidth = sheetPanels[0].sheetLength;
     const sheetHeight = sheetPanels[0].sheetWidth;
 
-    svgString += `<svg width="${sheetHeight}" height="${sheetWidth}" xmlns="http://www.w3.org/2000/svg" style="background-color: green; margin: ${margin}px;" style="background-color: #f0f0f0;">`;
-    let propertyObject = {};
+    svgString += `<svg width="${sheetHeight}" height="${sheetWidth}" xmlns="http://www.w3.org/2000/svg" style="background-color: ${getRandomColor()}; margin: ${margin}px;" style="background-color: #f0f0f0;" className="svg"> `;
+
     sheetPanels.forEach((panel) => {
       TAused = panel.areaUsed;
       remArea = panel.remainingArea;
       let TA = TAused + remArea;
       let percent = (TAused / TA) * 100;
 
-      document.getElementById("totalArea").value = TA;
-      document.getElementById("totalUsedArea").value = TAused;
+      document.getElementById("totalArea").value =
+        TA + " " + unitSelect + "\u00B2";
+      document.getElementById("totalUsedArea").value =
+        TAused + " " + unitSelect + "\u00B2";
       document.getElementById("totalUsedAreaPercentage").value =
-        percent.toFixed(1);
-      document.getElementById("totalWastedArea").value = remArea;
-      document.getElementById("totalWastedAreaPercentage").value = (
-        100 - percent
-      ).toFixed(1);
+        percent.toFixed(1) + " %";
+      document.getElementById("totalWastedArea").value =
+        remArea + " " + unitSelect + "\u00B2";
+      document.getElementById("totalWastedAreaPercentage").value =
+        (100 - percent).toFixed(1) + " %";
 
+      const rectWidth = panel.width;
+      const rectHeight = panel.length;
+      const textWidth = 80; // Maximum width for the text, adjust as needed
+      const textX = panel.x + panel.width / 2; // Calculate x position for text
+      const textY = panel.y + panel.length / 2; // Calculate y position for text
       if (panelLabel) {
         svgString += `<rect x="${panel.x}" y="${panel.y}" width="${
           panel.width
         }" height="${panel.length}" fill="${
           panel.panelColor
-        }" stroke="black" stroke-width="${panelThickness}" class="panel-rect">
-          <title>${panel.panelName}: ${panel.length} x ${
+        }" stroke="black" class="panel-rect">
+          <title>${panel.panelName}: ${panel.length}${unitSelect} x ${
           panel.width
-        }, Rotation: ${panel.rotation}, Panel (XY): ${panel.x} ${
-          panel.y
-        }</title>
-      </rect>
-      <text x="${panel.x + 5}" y="${panel.y + 20}" fill="black">${
-          panel.panelName
-        }</text>`;
+        }${unitSelect}, Panel (XY): ${panel.x} ${panel.y} </title>
+          </rect>
+  
+          <text x="${textX}" y="${textY}" fill="black" text-anchor="middle" alignment-baseline="middle" dominant-baseline="middle" style="max-width: ${textWidth}px;">${
+          panel.panelGroup
+        }</text>
+  
+          <text x="${panel.x + rectHeight / 2}" y="${
+          panel.y - 10
+        }" fill="black" transform="rotate(90 ${panel.x} ${panel.y})">${
+          panel.length
+        }</text>
+  
+          <text x="${panel.x + rectWidth / 2}" y="${
+          panel.y + 20
+        }" fill="black" text-anchor="start">${panel.width}</text>`;
       } else {
-        svgString += `<rect x="${panel.x}" y="${panel.y}" width="${panel.width}" height="${panel.length}" fill="${panel.panelColor}" stroke="black" stroke-width="${panelThickness}" class="panel-rect">
-        <title>${panel.panelName}: ${panel.length} x ${panel.width}, Rotation: ${panel.rotation}, Panel (XY): ${panel.x} ${panel.y}</title>
+        svgString += `<rect x="${panel.x}" y="${panel.y}" width="${panel.width}" height="${panel.length}" fill="${panel.panelColor}" stroke="black" class="panel-rect">
+        <title>${panel.panelName}: ${panel.length}${unitSelect} x ${panel.width}${unitSelect}, Panel (XY): ${panel.x} ${panel.y}</title>
       </rect>`;
       }
     });
 
     svgString += `</svg>`;
   }
-  console.log({ propertyObject });
   document.getElementById("svgContainer").innerHTML = svgString;
-  return propertyObject;
 }
 
 function getRandomColor() {
