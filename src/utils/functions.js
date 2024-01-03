@@ -7,16 +7,16 @@ export function optimizePanels(
 ) {
   const panelData = [];
   const panelGroupColors = {};
-  let propertyObject = {};
+
   let panelInfo = "Panel Information:<br>";
   let sheetInfo = "Sheet Information:<br>";
   let detailInfo = "Detail Information:<br>-------<br>";
   rows.forEach((row, index) => {
     const name = row.label;
 
-    if (!panelGroupColors[name]) {
-      panelGroupColors[name] = getRandomColor();
-    }
+    // if (!panelGroupColors[name]) {
+    panelGroupColors[name] = getRandomColor();
+    // }
 
     const length = parseInt(row.height);
     const width = parseInt(row.width);
@@ -67,6 +67,9 @@ export function optimizePanels(
         parseInt(a.length) * parseInt(a.width)
     );
 
+    const cutThickness = parseFloat(panelThickness); // Convert to number
+
+    const padding = cutThickness;
     for (let i = 0; i < sheets.length; i++) {
       const sheet = sheets[i];
 
@@ -92,13 +95,23 @@ export function optimizePanels(
                 panel.rotated = false;
               }
 
-              for (let row = 0; row <= grid.length - length; row++) {
-                for (let col = 0; col <= grid[0].length - width; col++) {
+              // Adjust the starting point to consider padding
+              for (
+                let row = 0;
+                row <= grid.length - (length + padding);
+                row++
+              ) {
+                for (
+                  let col = 0;
+                  col <= grid[0].length - (width + padding);
+                  col++
+                ) {
                   if (!grid[row][col]) {
                     let canPlace = true;
 
-                    for (let r = row; r < row + length; r++) {
-                      for (let c = col; c < col + width; c++) {
+                    // Check if the entire area including padding is available
+                    for (let r = row; r < row + length + padding; r++) {
+                      for (let c = col; c < col + width + padding; c++) {
                         // Ensure placement doesn't exceed sheet boundaries
                         if (
                           r >= grid.length ||
@@ -113,22 +126,27 @@ export function optimizePanels(
                     }
 
                     if (canPlace) {
-                      // Mark panel cells as occupied
-                      for (let r = row; r < row + length; r++) {
-                        for (let c = col; c < col + width; c++) {
+                      // Mark panel cells as occupied including padding
+                      for (let r = row; r < row + length + padding; r++) {
+                        for (let c = col; c < col + width + padding; c++) {
                           grid[r][c] = 1;
                         }
                       }
 
-                      panel.placed = true;
-                      panel.x = col; // x-coordinate
-                      panel.y = row; // y-coordinate
-                      areaUsed += length * width;
+                      // Calculate the actual coordinates without padding
+                      panel.x = col;
+                      panel.y = row;
+
+                      // Adjust area used considering panel size and padding
+                      areaUsed += (length + padding) * (width + padding);
                       const remainingArea =
                         sheet.length * sheet.width - areaUsed;
-                      const remainingLength = sheet.length - row - length;
-                      const remainingWidth = sheet.width - col - width;
+                      const remainingLength =
+                        sheet.length - row - (length + padding);
+                      const remainingWidth =
+                        sheet.width - col - (width + padding);
 
+                      // Log placement details
                       detailInfo += `Panel (${
                         panel.panel
                       }) ==> ${length} x ${width} ${
@@ -143,6 +161,7 @@ export function optimizePanels(
                         panel.color
                       })<br>-----------<br>`;
 
+                      panel.placed = true;
                       break;
                     }
                   }
@@ -163,7 +182,8 @@ export function optimizePanels(
   }
   bestFitDecreasing(panelData, sheetData);
 
-  let totalCuts = 0;
+  let totalCuts = 0; //total cut panel
+  let totalCutLength = 0;
 
   panelInfo = "Panel Information:<br>";
 
@@ -179,6 +199,7 @@ export function optimizePanels(
   });
 
   panelData.forEach((panel) => {
+    totalCutLength++;
     if (panel.placed === true) {
       totalCuts++;
     }
@@ -187,7 +208,8 @@ export function optimizePanels(
       panel.length
     }, Width: ${panel.width}, Placed: ${panel.placed ? "true" : "false"}<br>`;
   });
-
+  document.getElementById("totalCuts").value = totalCuts;
+  document.getElementById("totalCutLength").value = totalCutLength;
   let totalSheetWidth = 0;
   let totalSheetLength = 0;
 
@@ -250,7 +272,7 @@ export function optimizePanels(
     const sheetWidth = sheetPanels[0].sheetLength;
     const sheetHeight = sheetPanels[0].sheetWidth;
 
-    svgString += `<svg width="${sheetHeight}" height="${sheetWidth}" xmlns="http://www.w3.org/2000/svg" style="background-color: ${getRandomColor()}; margin: ${margin}px;" style="background-color: #f0f0f0;" className="svg"> `;
+    svgString += `<div ref={svgContainerRef} className="svg-container"><svg  ref={svgImageRef} width="${sheetHeight}" height="${sheetWidth}" xmlns="http://www.w3.org/2000/svg" style="background-color: ${getRandomColor()}; margin: ${margin}px;" style="background-color: #f0f0f0;" className="svg"> `;
 
     sheetPanels.forEach((panel) => {
       TAused = panel.areaUsed;
@@ -305,7 +327,7 @@ export function optimizePanels(
       }
     });
 
-    svgString += `</svg>`;
+    svgString += `</svg></div>`;
   }
   document.getElementById("svgContainer").innerHTML = svgString;
 }
