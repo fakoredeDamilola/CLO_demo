@@ -36,10 +36,22 @@ export function optimizePanels(
     }
     // }
   });
+  function generateRandomString(length) {
+    const characters =
+      "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+    let result = "";
+
+    for (let i = 0; i < length; i++) {
+      const randomIndex = Math.floor(Math.random() * characters.length);
+      result += characters.charAt(randomIndex);
+    }
+
+    return result;
+  }
 
   const sheetData = [];
   stockRows.forEach((row) => {
-    const name = row.label;
+    const name = generateRandomString(8);
     const length = row.height;
     const width = row.width;
     const quantity = row.quantity;
@@ -59,7 +71,7 @@ export function optimizePanels(
       });
     }
   });
-
+  console.log({ sheetData });
   function bestFitDecreasing(panels, sheets) {
     const sortedPanels = panels.sort(
       (a, b) =>
