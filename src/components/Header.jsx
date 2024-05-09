@@ -11,7 +11,7 @@ import executeIcon from "../assets/icons/play.svg";
 import saveIcon from "../assets/icons/save.svg";
 import logoIcon from "../assets/icons/grids.svg";
 
-const Header = ({optimizeData}) => {
+const Header = ({ optimizeData }) => {
   return (
     <header>
       <Navbar bg="dark" variant="dark" expand="lg">
@@ -24,7 +24,7 @@ const Header = ({optimizeData}) => {
               height="30"
               className="d-inline-block align-top"
             />{" "}
-            Cutlist Optimizer
+            Alvnex Optimizer
           </Navbar.Brand>
           <Navbar.Toggle aria-controls="navbarSupportedContent" />
 

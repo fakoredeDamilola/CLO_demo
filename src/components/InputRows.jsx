@@ -46,12 +46,10 @@ const InputRows = (props) => {
                 Label
               </th>
             )}
-            <th colSpan="1" className="text-capitalize" />
-            <th colSpan="1" className="capitalize"></th>
           </tr>
         </thead>
         <tbody>
-          {rows.map(({height, width, quantity, label, result, id}, index) => {
+          {rows.map(({ height, width, quantity, label, result, id }, index) => {
             return (
               // <Row input={input} key={input.id}/>
               <tr>

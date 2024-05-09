@@ -1,31 +1,22 @@
-import React, {useState} from "react";
+import React, { useState } from "react";
 import Worksheet from "../components/Worksheet";
 import Stocksheet from "../components/Stocksheet";
 import Results from "../components/Results";
 import Options from "../components/Options";
-import {read, utils} from "xlsx";
-import {optimizePanels} from "../utils/functions";
+import { read, utils } from "xlsx";
+import { optimizePanels } from "../utils/functions";
 // import {v4 as uuidv4} from "uuid";
 
 const Home = () => {
-  const [panelDivs, setPanelDivs] = useState([]);
-  const [panelLabels, setPanelLabels] = useState([]);
-  const [stockWidth, setStockWidth] = useState(0);
-  const [totalCutLength, setTotalCutLength] = useState(0);
   const [usedStockSheets, setUsedStockSheets] = useState("");
   const [rows, setRows] = useState([
-    {id: 1, height: "", quantity: "", label: "", width: "", result: ""},
+    { id: 1, height: "", quantity: "", label: "", width: "", result: "" },
   ]);
-  const [remainingPanel, setRemainingPanel] = useState([]);
   const [panelThickness, setPanelThickness] = useState("0");
   const [panelLabel, setPanelLabel] = useState(true);
   const [totalUsedArea, setTotalUsedArea] = useState("");
-  const [totalWastedArea, setTotalWastedArea] = useState("");
   const [totalCuts, setTotalCuts] = useState("");
-  const [inputValues, setInputValues] = useState({
-    totalStockWidth: "",
-    totalStockHeight: "",
-  });
+
   const [results, setResults] = useState([]);
   const [selectedFile, setSelectedFile] = useState(null);
 
@@ -34,13 +25,10 @@ const Home = () => {
     setSelectedFile(file);
   };
 
-  // Function to handle file upload (you can send it to a server here)
   const handleUpload = () => {
     if (selectedFile) {
-      // Here, you can send the file to a server or perform other actions
       console.log("Uploading file:", selectedFile);
 
-      // Check if the uploaded selectedFile has an Excel extension
       if (
         selectedFile.name.endsWith(".xls") ||
         selectedFile.name.endsWith(".xlsx")
@@ -49,16 +37,14 @@ const Home = () => {
         const reader = new FileReader();
         reader.onload = (e) => {
           const binaryData = e.target.result;
-          const workbook = read(binaryData, {type: "binary"});
+          const workbook = read(binaryData, { type: "binary" });
           const sheetName = workbook.SheetNames[0];
           const sheet = workbook.Sheets[sheetName];
-          const sheetData = utils.sheet_to_json(sheet, {header: 1});
+          const sheetData = utils.sheet_to_json(sheet, { header: 1 });
 
-          // Assuming the first row contains headers
           const headers = sheetData[0];
           const parsedData = [];
 
-          // Iterate through rows and create objects with key-value pairs
           for (let i = 1; i < sheetData.length; i++) {
             const row = sheetData[i];
             const rowData = {};
@@ -68,9 +54,7 @@ const Home = () => {
             parsedData.push(rowData);
           }
 
-          // Set the parsed data in state
-          // setData(parsedData);
-          console.log({parsedData});
+          console.log({ parsedData });
           const dataNeeded = parsedData.map((data) => ({
             height: data.height ?? "",
             quantity: data.quantity ?? "",
@@ -84,25 +68,19 @@ const Home = () => {
         };
         reader.readAsBinaryString(selectedFile);
       } else {
-        // Handle the case where the file is not an Excel file
         console.error("Uploaded file is not an Excel file");
-        // setData([]); // Clear any previously parsed data
       }
     }
   };
 
-  const [stockSheetStyle, setStockSheetStyle] = useState({
-    width: "0",
-    height: "0",
-  });
   const [stockRows, setStockRows] = useState([
-    {id: 1, height: "", quantity: "", width: "", label: "", result: ""},
+    { id: 1, height: "", quantity: "", width: "", label: "", result: "" },
   ]);
 
   const optimizeData = () => {
     console.log(12);
     let hasError = false;
-    for (const {id, height, width, quantity} of rows) {
+    for (const { id, height, width, quantity } of rows) {
       if (height === "" || width === "" || quantity === "") {
         hasError = true;
         break;
@@ -112,37 +90,33 @@ const Home = () => {
     if (hasError) {
       alert("Please fill in all input fields before saving.");
     } else {
-      const stockLength = inputValues.totalStockHeight;
-      const stockWidth = inputValues.totalStockWidth;
-
       rows.sort((rowA, rowB) => {
         const areaA = parseInt(rowA.length) * parseInt(rowA.width);
         const areaB = parseInt(rowB.length) * parseInt(rowB.width);
         return areaB - areaA;
       });
-      setStockSheetStyle({
-        width: stockWidth + "px",
-        height: stockLength + "px",
-      });
 
-      setStockWidth(stockWidth);
+      const newRows = stockRows.map((row) => {
+        return {
+          width: row.width,
+          height: row.height,
+          quantity: parseInt(row.quantity),
+        };
+      });
+      console.log({ newRows });
       // const result = optimizePanels(
-      //   stockLength,
-      //   stockWidth,
+      //   [{ width: stockWidth, height: stockLength, quantity: 3 }],
       //   rows,
       //   panelThickness === "" ? 0 : panelThickness
       // );
       const result = optimizePanels(
-        [{width: "1000", height: "1000", quantity: 3}],
+        newRows,
         rows,
         panelThickness === "" ? 0 : panelThickness
       );
-      console.log(result[0]);
-      // setPanelDivs(result[0].parentPanel);
-      // setPanelLabels(result[0].parentLabel);
-      // setTotalCutLength(result[0].totalCutLength);
-      // setTotalWastedArea(result[0].totalWasteArea);
-      setResults(result[0]);
+      console.log(result, result[0].totalWasteArea);
+
+      setResults(result);
     }
   };
 
@@ -159,14 +133,12 @@ const Home = () => {
         panelLabel={panelLabel}
         setRows={setRows}
         optimizeData={optimizeData}
-        inputValues={inputValues}
-        setInputValues={setInputValues}
       />
       <div className="custom-upload-container">
         <input
           type="file"
           id="fileInput"
-          style={{display: "none"}}
+          style={{ display: "none" }}
           accept=".xlsx, .xls"
           onChange={handleFileChange}
         />
@@ -181,78 +153,101 @@ const Home = () => {
           </button>
         )}
       </div>
-      <div>
-        <p>
-          Used stock sheets:{" "}
-          <input
-            value={usedStockSheets}
-            type="text"
-            id="usedStockSheets"
-            readonly
-          />
-        </p>
-        <p>
-          Total used area:{" "}
-          <input
-            type="text"
-            value={totalUsedArea}
-            id="totalUsedArea"
-            readonly
-          />
-        </p>
-        <p>
-          Total wasted area:{" "}
-          <input
-            value={totalWastedArea}
-            type="text"
-            id="totalWastedArea"
-            readonly
-          />
-        </p>
-        <p>
-          Total cuts:{" "}
-          <input value={totalCuts} type="text" id="totalCuts" readonly />
-        </p>
-        <p>
-          Total cut length:{" "}
-          <input
-            value={totalCutLength}
-            type="text"
-            id="totalCutLength"
-            readonly
-          />
-        </p>
-      </div>
       <Options
         panelLabel={panelLabel}
         setPanelLabel={setPanelLabel}
         panelThickness={panelThickness}
         setPanelThickness={setPanelThickness}
       />
-      {/*  */}
-      {/* <PlacementDetails placementDetails={placementDetails} /> */}
+
+      <h3 style={{ margin: "20px 0" }}>RESULTS</h3>
       {results.map((result, index) => {
+        const resData = result[0];
         return (
           <div>
-            all sheets
+            <div>
+              <p>
+                Used stock sheets:{" "}
+                <input
+                  value={usedStockSheets}
+                  type="text"
+                  id="usedStockSheets"
+                  readonly
+                />
+              </p>
+              <p>
+                Total used area:{" "}
+                <input
+                  type="text"
+                  value={totalUsedArea}
+                  id="totalUsedArea"
+                  readonly
+                />
+              </p>
+
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "10px",
+                  margin: "15px 0",
+                }}
+              >
+                <div>Total Wasted Area</div>
+                <div
+                  style={{
+                    width: "100px",
+                    height: "40px",
+                    borderRadius: "5px",
+                    backgroundColor: "red",
+                    color: "white",
+                    padding: "10px",
+                    boxSizing: "border-box",
+                  }}
+                >
+                  {resData.totalWasteArea}
+                </div>
+              </div>
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "10px",
+                  margin: "15px 0",
+                }}
+              >
+                <div>Total Cut Length</div>
+                <div
+                  style={{
+                    width: "100px",
+                    height: "40px",
+                    borderRadius: "5px",
+                    backgroundColor: "red",
+                    color: "white",
+                    padding: "10px",
+                    boxSizing: "border-box",
+                  }}
+                >
+                  {resData.totalCutLength}
+                </div>
+              </div>
+
+              <p>
+                Total cuts:{" "}
+                <input value={totalCuts} type="text" id="totalCuts" readonly />
+              </p>
+            </div>
             <Results
               key={index}
-              panelDivs={result.parentPanel}
-              panelLabels={result.parentLabel}
-              stockSheetStyle={result.stockSheetStyle}
+              panelDivs={resData.parentPanel}
+              panelLabels={resData.parentLabel}
+              stockSheetStyle={resData.stockSheetStyle}
               stockWidth="1000"
-              panelText={result.panelText}
+              panelText={resData.panelText}
             />
           </div>
         );
       })}
-      {/* <Results
-        panelDivs={panelDivs}
-        panelLabels={panelLabels}
-        stockSheetStyle={stockSheetStyle}
-        stockWidth={stockWidth}
-        panelText={panelLabel}
-      /> */}
     </div>
   );
 };

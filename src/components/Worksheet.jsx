@@ -1,11 +1,10 @@
-import React, {useEffect, useState} from "react";
+import React, { useEffect, useState } from "react";
 
-import {Button} from "react-bootstrap";
+import { Button } from "react-bootstrap";
 import InputRows from "./InputRows";
 
 const Worksheet = (props) => {
-  const {optimizeData, rows, setRows, inputValues, setInputValues, panelLabel} =
-    props;
+  const { optimizeData, rows, setRows, panelLabel } = props;
   const addRow = () => {
     const initialRow = {
       id: "",
@@ -32,20 +31,14 @@ const Worksheet = (props) => {
   };
 
   const handleDataChange = (e, id) => {
-    const {name, value} = e.target;
+    const { name, value } = e.target;
     const updatedRows = rows.map((row) => {
       if (row.id === id) {
-        return {...row, [name]: value};
+        return { ...row, [name]: value };
       }
       return row;
     });
     setRows(updatedRows);
-  };
-  const handleChange = (e) => {
-    setInputValues((prev) => ({
-      ...prev,
-      [e.target.name]: e.target.value,
-    }));
   };
 
   const handleDelete = (id) => {
@@ -55,26 +48,6 @@ const Worksheet = (props) => {
 
   return (
     <div>
-      <p>
-        Sheet Width:{" "}
-        <input
-          value={inputValues.totalStockWidth}
-          type="text"
-          id="totalStockWidth"
-          name="totalStockWidth"
-          onChange={handleChange}
-        />
-      </p>
-      <p>
-        Sheet Height:{" "}
-        <input
-          value={inputValues.totalStockHeight}
-          type="text"
-          id="totalStockHeight"
-          name="totalStockHeight"
-          onChange={handleChange}
-        />
-      </p>
       <InputRows
         handleDataChange={handleDataChange}
         handleInputFocus={handleInputFocus}
