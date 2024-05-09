@@ -41,11 +41,13 @@ const InputRows = (props) => {
             <th colSpan="1" className="text-capitalize">
               quantity
             </th>
+
             {panelLabel && (
               <th colSpan="1" className="text-capitalize">
                 Label
               </th>
             )}
+            <th colSpan="1" className="text-capitalize"></th>
           </tr>
         </thead>
         <tbody>

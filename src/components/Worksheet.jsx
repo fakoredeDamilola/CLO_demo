@@ -4,7 +4,8 @@ import { Button } from "react-bootstrap";
 import InputRows from "./InputRows";
 
 const Worksheet = (props) => {
-  const { optimizeData, rows, setRows, panelLabel } = props;
+  // const { optimizeData, rows, setRows, panelLabel } = props;
+  const { rows, setRows, inputValues, setInputValues, panelLabel } = props;
   const addRow = () => {
     const initialRow = {
       id: "",
@@ -58,20 +59,6 @@ const Worksheet = (props) => {
         addRow={addRow}
         name="Panels"
       />
-
-      <Button
-        onClick={optimizeData}
-        className="me-lg-2 me-sm-0"
-        variant="success"
-      >
-        <img
-          alt=""
-          width="30"
-          height="30"
-          className="d-inline-block align-top"
-        />{" "}
-        Calculate
-      </Button>
     </div>
   );
 };
