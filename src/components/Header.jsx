@@ -24,7 +24,7 @@ const Header = ({ optimizeData }) => {
               height="30"
               className="d-inline-block align-top"
             />{" "}
-            Alvnex Optimizer
+            Alunex Optimizer
           </Navbar.Brand>
           <Navbar.Toggle aria-controls="navbarSupportedContent" />
 
