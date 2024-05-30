@@ -24,11 +24,8 @@ export function displayPanelAndSheetInfo(
   const panelGroupColors = {};
 
   panelTable.forEach((row, index) => {
-    console.log({ index });
     if (index + 1 !== 0) {
       const name = row.label;
-      console.log("looping");
-      // Generate a unique color for each unique panelGroup
       if (!panelGroupColors[name]) {
         panelGroupColors[name] = getRandomColor();
       }
@@ -36,7 +33,6 @@ export function displayPanelAndSheetInfo(
       const length = row.length;
       const width = row.width;
       const quantity = row.quantity;
-      console.log({ length, width, quantity });
       for (let i = 1; i <= quantity; i++) {
         panelData.push({
           pid: `${panelData.length + 1}`,
@@ -57,7 +53,6 @@ export function displayPanelAndSheetInfo(
   const sheetData = [];
   sheetTable.forEach((row, index) => {
     if (index + 1 !== 0) {
-      console.log("herer");
       const name = row.label;
       const length = row.length;
       const width = row.width;
@@ -83,7 +78,6 @@ export function displayPanelAndSheetInfo(
 
   function bestFitDecreasing(panels, sheets) {
     // console.clear();
-    console.log({ panels, sheets });
     const sortedPanels = panels.sort(
       (a, b) =>
         parseInt(b.length) * parseInt(b.width) -
@@ -92,7 +86,6 @@ export function displayPanelAndSheetInfo(
 
     for (let i = 0; i < sheets.length; i++) {
       const sheet = sheets[i];
-      console.log({ sortedPanels, sheet });
       if (!sheet.placed) {
         const grid = Array(parseInt(sheet.length))
           .fill()
@@ -151,9 +144,6 @@ export function displayPanelAndSheetInfo(
                       const remainingLength = sheet.length - row - length;
                       const remainingWidth = sheet.width - col - width;
 
-                      // Log placement details
-                      // console.log(`Panel (${panel.panel}) ==> ${length} x ${width} ${panel.rotated ? '(R)' : '(NR)'} is placed on Sheet (${sheet.sheet}) ${sheet.length} x ${sheet.width}. Area used: ${areaUsed}, Remaining area: ${remainingArea}, Remaining length: ${remainingLength}, Remaining width: ${remainingWidth}`);
-
                       detailInfo += `Panel (${
                         panel.panel
                       }) ==> ${length} x ${width} ${
@@ -168,7 +158,6 @@ export function displayPanelAndSheetInfo(
                         panel.color
                       })<br>-----------<br>`;
 
-                      // console.log(`${panel.panelGroup}, ${panel.color}`);
                       break;
                     }
                   }
@@ -183,15 +172,11 @@ export function displayPanelAndSheetInfo(
         const allPlaced = sortedPanels.every((panel) => panel.placed);
         if (allPlaced) {
           sheet.placed = true;
-          // console.log(`All panels placed on Sheet (${sheet.sid})`);
         }
       }
     }
   }
-  console.log({ panelData, sheetData, detailInfo });
   bestFitDecreasing(panelData, sheetData);
-  // const result = bestFitDecreasing(panelData, sheetData);
-  // console.log(result);
 
   let totalCuts = 0; //total cut panel
   let panellenght = 0;
@@ -261,7 +246,6 @@ export function displayPanelAndSheetInfo(
     /Panel \((.*?)\) ==> (\d+) x (\d+) \((R|NR)\) is placed on Sheet \((.*?)\) (\d+) x (\d+)\. <br> Area used: (\d+), Remaining area: (\d+), Remaining length: (\d+), Remaining width: (\d+), Placed: (true|false), X: (\d+), Y: (\d+), panelGroup: \((.*?)\), sheetGroup: \((.*?)\), col: \((.*?)\)<br>-----------<br>/g;
 
   let match;
-  console.log((match = panelRegex.exec(detailInfo)));
   while ((match = panelRegex.exec(detailInfo)) !== null) {
     const panel = {
       panelName: match[1],
@@ -282,10 +266,8 @@ export function displayPanelAndSheetInfo(
       sheetGroup: match[16],
       panelColor: match[17],
     };
-    console.log({ panel });
     panels.push(panel);
   }
-  console.log({ panels });
 
   //---------------------------------------
   // sheets and panels arrays exist with relevant data
@@ -298,8 +280,6 @@ export function displayPanelAndSheetInfo(
     acc[panel.sheetName].push(panel);
     return acc;
   }, {});
-
-  console.log({ panelsBySheet });
 
   // Step 2: Place panels on respective sheets
   // the 'panelsBySheet' object correctly populated
@@ -330,7 +310,6 @@ export function displayPanelAndSheetInfo(
   }
 
   const uniqueSheets = new Map();
-  console.log({ panelsBySheet });
   for (const sheetName in panelsBySheet) {
     const sheetPanels = panelsBySheet[sheetName];
     const sheetKey = generateSheetKey(sheetPanels);
@@ -346,7 +325,6 @@ export function displayPanelAndSheetInfo(
   let totalArea = 0;
   let totalAreaUsed = 0;
   let totalRemainingArea = 0;
-  console.log({ uniqueSheets });
   uniqueSheets.forEach((sheetData, sheetKey) => {
     const sheetName = sheetData.panels[0].sheetGroup;
     const sheetPanels = sheetData.panels;
@@ -439,25 +417,12 @@ export function displayPanelAndSheetInfo(
   // document.getElementById("totalWastedAreaPercentage").value =
   //   totalWastedAreaPercentage.toFixed(1);
 
-  console.log({ svgString });
-
   document.getElementById("svgContainer").innerHTML = svgString;
 
-  // Add the SVG content to the div
-  // document.getElementById('svgContainer').innerHTML = svgString;
-  // document.getElementById('ede').innerHTML = xx;
-
-  // console.log(panelData_draw);
-  // let v = document.getElementById("ede");
-  // v.innerHTML=JSON.stringify(panelData_draw);
-  // v.innerHTML=JSON.stringify();
-
-  // const cutThickness = document.getElementById("cutThickness").value;
   const singleSheet = document.getElementById("singleSheet").checked
     ? "on"
     : "off";
 
-  console.log(cutThickness, panelLabels, singleSheet);
   return {
     totalArea,
     percentTotalArea,

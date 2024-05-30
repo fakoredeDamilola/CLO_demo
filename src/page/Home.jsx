@@ -90,7 +90,6 @@ const Home = () => {
 
   function optimizeData() {
     setLoading(true);
-    console.log({ rows, stockRows });
     const results = displayPanelAndSheetInfo(
       stockRows,
       rows,
