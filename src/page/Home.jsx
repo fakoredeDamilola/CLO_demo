@@ -145,37 +145,25 @@ const Home = () => {
             </div>
           </div>
 
-          <hr />
-
-          {/* <table className="table">
-            <thead>
-              <tr>
-                <th colSpan="5">Panel Settings</th>
-              </tr>
-            </thead>
-            <tbody id="panelsSettings">
-              Panel settings
-              <tr>
-                <td>
-                  <label htmlFor="panel_name">Name:</label>
-                </td>
-                <td>
-                  <label htmlFor="panel_length">Length:</label>
-                </td>
-                <td>
-                  <label htmlFor="panel_width">Width:</label>
-                </td>
-                <td>
-                  <label htmlFor="panel_qty">Quantity:</label>
-                </td>
-                <td>
-                  <button className="btn btn-primary mt-2" id="addPanel">
-                    Add Panel
-                  </button>
-                </td>
-              </tr>
-            </tbody>
-          </table> */}
+          <div className="custom-upload-container">
+            <input
+              type="file"
+              id="fileInput"
+              style={{ display: "none" }}
+              accept=".xlsx, .xls"
+              onChange={handleFileChange}
+            />
+            <label htmlFor="fileInput" className="custom-upload-button">
+              {selectedFile
+                ? `Selected File: ${selectedFile.name}`
+                : "Choose an Excel file"}
+            </label>
+            {selectedFile && (
+              <button onClick={handleUpload} className="custom-upload-button">
+                Upload
+              </button>
+            )}
+          </div>
         </div>
       </div>
       <br />
