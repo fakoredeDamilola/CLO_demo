@@ -9,7 +9,7 @@ const Worksheet = (props) => {
   const addRow = () => {
     const initialRow = {
       id: "",
-      height: "",
+      length: "",
       width: "",
       quantity: "",
       label: "",

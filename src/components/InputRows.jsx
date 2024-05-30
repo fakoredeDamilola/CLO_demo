@@ -33,7 +33,7 @@ const InputRows = (props) => {
           </tr>
           <tr>
             <th colSpan="1" className="text-capitalize">
-              height
+              length
             </th>
             <th colSpan="1" className="text-capitalize">
               width
@@ -51,15 +51,15 @@ const InputRows = (props) => {
           </tr>
         </thead>
         <tbody>
-          {rows.map(({ height, width, quantity, label, result, id }, index) => {
+          {rows.map(({ length, width, quantity, label, result, id }, index) => {
             return (
               // <Row input={input} key={input.id}/>
               <tr>
                 <td>
                   <input
                     type="number"
-                    name="height"
-                    value={height}
+                    name="length"
+                    value={length}
                     onChange={(e) => handleDataChange(e, id)}
                     onFocus={handleInputFocus}
                     onBlur={handleInputBlur}
