@@ -113,56 +113,33 @@ const Home = () => {
   return (
     <div className="container">
       <h1>Panel and Sheet Information</h1>
-
+      <div className="custom-upload-container">
+        <input
+          type="file"
+          id="fileInput"
+          ref={fileInputRef}
+          style={{ display: "none" }}
+          accept=".xlsx, .xls"
+          onChange={handleFileChange}
+        />
+        <label htmlFor="fileInput" className="custom-upload-button">
+          {selectedFile
+            ? `Selected File: ${selectedFile.name}`
+            : "Choose an Excel file"}
+        </label>
+        {selectedFile && (
+          <button onClick={handleUpload} className="custom-upload-button">
+            Upload
+          </button>
+        )}
+      </div>
       <div className="row">
         <div className="col">
-          {/* <tbody id="sheetsSettings">
-              Sheet settings
-              <tr>
-                <td>
-                  <label htmlFor="sheet_name">Name:</label>
-                </td>
-                <td>
-                  <label htmlFor="sheet_length">Length:</label>
-                </td>
-                <td>
-                  <label htmlFor="sheet_width">Width:</label>
-                </td>
-                <td>
-                  <label htmlFor="sheet_qty">Quantity:</label>
-                </td>
-                <td>
-                  <button className="btn btn-primary mt-2" id="addSheet">
-                    Add Sheet
-                  </button>
-                </td>
-              </tr>
-            </tbody> */}
           <div style={{ margin: "50px 0" }}>
             <Stocksheet stockRows={stockRows} setStockRows={setStockRows} />
             <div style={{ margin: "50px 0" }}>
               <Worksheet rows={rows} setRows={setRows} />
             </div>
-          </div>
-
-          <div className="custom-upload-container">
-            <input
-              type="file"
-              id="fileInput"
-              style={{ display: "none" }}
-              accept=".xlsx, .xls"
-              onChange={handleFileChange}
-            />
-            <label htmlFor="fileInput" className="custom-upload-button">
-              {selectedFile
-                ? `Selected File: ${selectedFile.name}`
-                : "Choose an Excel file"}
-            </label>
-            {selectedFile && (
-              <button onClick={handleUpload} className="custom-upload-button">
-                Upload
-              </button>
-            )}
           </div>
         </div>
       </div>
