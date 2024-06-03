@@ -1,9 +1,11 @@
 export function displayPanelAndSheetInfo(
   sheetTable,
   panelTable,
+  panelLabel,
   panelThickness,
   unit
 ) {
+  console.log({ panelThickness });
   let panelInfo = "Panel Information:<br>";
   let sheetInfo = "Sheet Information:<br>";
   let detailInfo = "Detail Information:<br>-------<br>";
@@ -287,9 +289,10 @@ export function displayPanelAndSheetInfo(
   let svgString = "";
   let xx = "";
 
-  const containerWidth = 800; // Define the container width in pixels
-  const containerHeight = 600; // Define the container height in pixels
+  const containerWidth = sheetTable[0].width; // Define the container width in pixels
+  const containerHeight = sheetTable[0].length; // Define the container height in pixels
   const margin = 10;
+  console.log({ containerHeight, containerWidth, sheetTable });
 
   // Determine the scaling factor based on the container size
   const maxSheetWidth = Math.max(...sheetData.map((sheet) => sheet.width));
@@ -325,13 +328,14 @@ export function displayPanelAndSheetInfo(
   let totalArea = 0;
   let totalAreaUsed = 0;
   let totalRemainingArea = 0;
+  const sheetDetails = [];
   uniqueSheets.forEach((sheetData, sheetKey) => {
     const sheetName = sheetData.panels[0].sheetGroup;
     const sheetPanels = sheetData.panels;
     const sheetCount = sheetData.count;
 
-    const sheetWidth = sheetPanels[0].sheetWidth;
-    const sheetHeight = sheetPanels[0].sheetLength;
+    const sheetWidth = parseFloat(sheetPanels[0].sheetWidth);
+    const sheetHeight = parseFloat(sheetPanels[0].sheetLength);
 
     // Get the last panel for the current sheet
     const lastPanel = sheetPanels[sheetPanels.length - 1];
@@ -345,16 +349,36 @@ export function displayPanelAndSheetInfo(
     totalArea += sheetTotalArea * sheetCount;
     totalAreaUsed += sheetTotalAreaUsed * sheetCount;
     totalRemainingArea += sheetTotalRemainingArea * sheetCount;
-
+    sheetDetails.push(
+      `(${sheetWidth}${unit} x ${sheetHeight}${unit}) X${sheetCount}`
+    );
     // Container SVG with light yellow background
-    svgString += `<svg width="${containerWidth}" height="${
-      containerHeight + 20
+    svgString += `<svg width="${parseInt(containerWidth) + 70}" height="${
+      parseInt(containerHeight) + 20
     }" xmlns="http://www.w3.org/2000/svg" style="background-color: lightyellow; margin: ${margin}px; position: relative;">`;
 
     // Inner sheet SVG with white background, without border
-    svgString += `<svg width="${sheetWidth * scale}" height="${
+    svgString += `<svg width="${sheetWidth}" height="${
       sheetHeight * scale
     }" x="${margin}" y="${margin}" style="background-color: white;">`;
+
+    // Add dimensions for width and height
+    const midX = (containerWidth * scale) / 2;
+    const midY = (containerHeight * scale) / 2;
+
+    svgString += `<line x1="820" y1="${30}" x2="${830}" y2="${800}" stroke="black" strokeWidth="10" marker-end="url(#arrow)" />`; // Width dimension line
+    svgString += `<text x="${midX}" y="${-15}" text-anchor="middle" font-size="10" fill="black">${
+      containerWidth * scale
+    }</text>`; // Width text
+
+    svgString += `<line x1="${-10}" y1="0" x2="${-10}" y2="${
+      containerHeight * scale
+    }" stroke="black" strokeWidth="1" marker-end="url(#arrow)" />`; // Height dimension line
+    svgString += `<text x="${-15}" y="${midY}" text-anchor="middle" font-size="10" fill="black" transform="rotate(-90, -15, ${midY})">${
+      containerHeight * scale
+    }</text>`; // Height text
+
+    console.log({ svgString });
 
     // Add a black border rectangle inside the sheet SVG
     svgString += `<rect x="0" y="0" width="${sheetWidth * scale}" height="${
@@ -365,7 +389,6 @@ export function displayPanelAndSheetInfo(
       const panelLabels = document.getElementById("panelLabels").checked
         ? "on"
         : "off";
-      const cutThickness = document.getElementById("cutThickness").value;
 
       const scaledX = panel.x * scale;
       const scaledY = panel.y * scale;
@@ -375,7 +398,7 @@ export function displayPanelAndSheetInfo(
       if (panelLabels === "on") {
         svgString += `<rect x="${scaledX}" y="${scaledY}" width="${scaledWidth}" height="${scaledLength}" fill="${
           panel.panelColor
-        }" stroke="black" stroke-width="${cutThickness}" class="panel-rect">
+        }" stroke="black" stroke-width="${panelThickness}" class="panel-rect">
         <title>${panel.panelName}: ${panel.length} x ${
           panel.width
         }, Rotation: ${
@@ -386,7 +409,7 @@ export function displayPanelAndSheetInfo(
           panel.panelName
         }</text>`;
       } else {
-        svgString += `<rect x="${scaledX}" y="${scaledY}" width="${scaledWidth}" height="${scaledLength}" fill="${panel.panelColor}" stroke="black" stroke-width="${cutThickness}" class="panel-rect">
+        svgString += `<rect x="${scaledX}" y="${scaledY}" width="${scaledWidth}" height="${scaledLength}" fill="${panel.panelColor}" stroke="black" stroke-width="${panelThickness}" class="panel-rect">
         <title>${panel.panelName}: ${panel.length} x ${panel.width}, Rotation: ${panel.rotation}, Panel (XY): ${scaledX} ${scaledY}</title>
       </rect>`;
       }
@@ -431,8 +454,11 @@ export function displayPanelAndSheetInfo(
     totalRemainingArea,
     totalWastedAreaPercentage: totalWastedAreaPercentage.toFixed(2),
     totalCutDetails,
+    totalCuts,
+    totalWastedArea: totalRemainingArea,
     totalCutLength,
-    cutThickness,
+    panelThickness,
+    sheetDetails,
   };
 }
 

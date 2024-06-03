@@ -4,6 +4,7 @@ import Stocksheet from "../components/Stocksheet";
 import { read, utils } from "xlsx";
 import "../home.css";
 import { displayPanelAndSheetInfo } from "../utils/functions";
+import CollapsibleTable from "../components/CollapsibleTable";
 
 const Home = () => {
   const [totalCutLength, setTotalCutLength] = useState(0);
@@ -14,6 +15,7 @@ const Home = () => {
     { id: 1, length: "", quantity: "", label: "djdjj", width: "", result: "" },
   ]);
   const [unit, setUnit] = useState("in");
+  const [sheetDetails, setSheetDetails] = useState([]);
   const [panelThickness, setPanelThickness] = useState("0");
   const [panelLabel, setPanelLabel] = useState(false);
   const [totalArea, setTotalArea] = useState("");
@@ -85,7 +87,7 @@ const Home = () => {
     }
   };
   const [stockRows, setStockRows] = useState([
-    { id: 1, length: "", quantity: "", width: "", label: "jhh", result: "" },
+    { id: 1, length: "", quantity: "", width: "", label: "", result: "" },
   ]);
 
   function optimizeData() {
@@ -93,20 +95,23 @@ const Home = () => {
     const results = displayPanelAndSheetInfo(
       stockRows,
       rows,
-
       panelLabel,
-      panelThickness <= 0 || panelThickness === "" ? 1 : panelThickness,
+      parseInt(panelThickness) <= 0 || panelThickness === ""
+        ? 1
+        : parseInt(panelThickness),
       unit
     );
     setTotalCutLength(results.totalCutLength);
     setUsedStockSheets(results.usedStockSheets);
     setTotalArea(results.totalArea);
     setPercentTotalArea(results.percentTotalArea);
-    setTotalUsedArea(results.totalUsedArea);
+    setTotalUsedArea(results.totalAreaUsed);
     setTotalUsedAreaPercentage(results.totalUsedAreaPercentage);
     setTotalWastedArea(results.totalWastedArea);
     setTotalWastedAreaPercentage(results.totalWastedAreaPercentage);
     setTotalCuts(results.totalCuts);
+    setSheetDetails(results.sheetDetails);
+    setPanelThickness(results.panelThickness);
     setLoading(false);
   }
 
@@ -136,9 +141,17 @@ const Home = () => {
       <div className="row">
         <div className="col">
           <div style={{ margin: "50px 0" }}>
-            <Stocksheet stockRows={stockRows} setStockRows={setStockRows} />
+            <Stocksheet
+              stockRows={stockRows}
+              setStockRows={setStockRows}
+              panelLabel={panelLabel}
+            />
             <div style={{ margin: "50px 0" }}>
-              <Worksheet rows={rows} setRows={setRows} />
+              <Worksheet
+                rows={rows}
+                setRows={setRows}
+                panelLabel={panelLabel}
+              />
             </div>
           </div>
         </div>
@@ -153,8 +166,7 @@ const Home = () => {
               type="text"
               id="cutThickness"
               name="cutThickness"
-              min="1"
-              value="1"
+              value={panelThickness}
               onChange={(e) => setPanelThickness(e.target.value)}
             />
           </div>
@@ -164,7 +176,12 @@ const Home = () => {
           <div className="form-group">
             <label htmlFor="panelLabels">Labels on Panels:</label>
             <label className="switch">
-              <input type="checkbox" id="panelLabels" name="panelLabels" />
+              <input
+                type="checkbox"
+                id="panelLabels"
+                name="panelLabels"
+                onChange={(e) => setPanelLabel(e.target.checked)}
+              />
               <span className="slider"></span>
             </label>
           </div>
@@ -193,91 +210,6 @@ const Home = () => {
       <br />
       <div className="container">
         <h2>Global Statistics</h2>
-        <div className="row">
-          <div className="col-md-4">
-            <label htmlFor="totalUsedArea">
-              Total Area of Used stock sheets:
-            </label>
-            <input
-              type="text"
-              className="form-control"
-              id="totalArea"
-              disabled
-              value={totalArea}
-              onChange={(e) => setTotalArea(e.target.value)}
-            />
-            <input
-              type="text"
-              className="form-control"
-              id="percentTotalArea"
-              disabled
-              value={percentTotalArea}
-              onChange={(e) => setPercentTotalArea(e.target.value)}
-            />
-            <br />
-          </div>
-          <div className="col-md-4">
-            <label htmlFor="totalUsedAreaPercentage">Total Used Area:</label>
-            <input
-              type="text"
-              className="form-control"
-              id="totalUsedArea"
-              disabled
-              value={totalUsedAreaPercentage}
-              onChange={(e) => setTotalUsedAreaPercentage(e.target.value)}
-            />
-            <input
-              type="text"
-              className="form-control"
-              id="totalUsedAreaPercentage"
-              disabled
-              value="0"
-            />
-          </div>
-          <div className="col-md-4">
-            <label htmlFor="totalWastedArea">Total Wasted Area:</label>
-            <input
-              type="text"
-              className="form-control"
-              id="totalWastedArea"
-              disabled
-              value={totalWastedArea}
-              onChange={(e) => setTotalWastedArea(e.target.value)}
-            />
-            <input
-              type="text"
-              className="form-control"
-              id="totalWastedAreaPercentage"
-              disabled
-              value={totalWastedAreaPercentage}
-              onChange={(e) => setTotalWastedAreaPercentage(e.target.value)}
-            />
-          </div>
-        </div>
-        <div className="row">
-          <div className="col-md-4">
-            <label htmlFor="totalCuts">Total Cuts:</label>
-            <input
-              type="text"
-              className="form-control"
-              id="totalCuts"
-              disabled
-              value={totalCuts}
-              onChange={(e) => setTotalCuts(e.target.value)}
-            />
-          </div>
-          <div className="col-md-4">
-            <label htmlFor="totalCutLength">Total Cut Length:</label>
-            <input
-              type="text"
-              className="form-control"
-              id="totalCutLength"
-              disabled
-              value={totalCutLength}
-              onChange={(e) => setTotalCutLength(e.target.value)}
-            />
-          </div>
-        </div>
       </div>
       <br />
       <br />
@@ -315,16 +247,22 @@ const Home = () => {
 
             <p></p>
           </div>
-          <br />
           <div className="container">
             <div id="result" className="sheets">
               Sheets representation will be displayed here
             </div>
           </div>
-          <div className="container">
-            <div id="drawingArea" className="sheets">
-              Sheets representation will be displayed here
-            </div>
+          <div className="mb-5">
+            <CollapsibleTable
+              totalUsedArea={totalUsedArea}
+              totalUsedAreaPercentage={totalUsedAreaPercentage}
+              totalCutLength={totalCutLength}
+              totalCuts={totalCuts}
+              sheetDetails={sheetDetails}
+              totalWastedArea={totalWastedArea}
+              totalWastedAreaPercentage={totalWastedAreaPercentage}
+              panelThickness={panelThickness}
+            />
           </div>
         </div>
         <br />
