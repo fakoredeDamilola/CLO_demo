@@ -30,10 +30,13 @@ const Header = ({ optimizeData }) => {
 
           <Navbar.Collapse id="navbarSupportedContent">
             <Nav className="ms-auto align-items-center">
-              <Button className="me-lg-2 me-sm-0" variant="success">
+              <Button
+                className="me-lg-2 me-sm-0"
+                variant="success"
+                onClick={optimizeData}
+              >
                 <img
                   src={executeIcon}
-                  onClick={optimizeData}
                   alt=""
                   width="30"
                   height="30"
