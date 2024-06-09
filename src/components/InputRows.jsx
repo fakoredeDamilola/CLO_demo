@@ -14,7 +14,9 @@ const InputRows = (props) => {
     name,
     addRow,
     panelLabel,
+    children,
   } = props;
+
   return (
     <div>
       <Table striped borderless hover variant="dark" size="sm" responsive>
@@ -115,6 +117,7 @@ const InputRows = (props) => {
       <CustomButton backgroundColor="blue" width="150px" onClick={addRow}>
         Add Row
       </CustomButton>
+      {children}
     </div>
   );
 };

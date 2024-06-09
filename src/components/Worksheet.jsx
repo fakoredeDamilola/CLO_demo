@@ -1,11 +1,19 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 
 import { Button } from "react-bootstrap";
 import InputRows from "./InputRows";
 
 const Worksheet = (props) => {
   // const { optimizeData, rows, setRows, panelLabel } = props;
-  const { rows, setRows, inputValues, setInputValues, panelLabel } = props;
+  const {
+    rows,
+    setRows,
+    panelLabel,
+    handleFileChange,
+    selectedFile,
+    handleUpload,
+  } = props;
+  const fileInputRef = useRef(null);
   const addRow = () => {
     const initialRow = {
       id: "",
@@ -58,7 +66,30 @@ const Worksheet = (props) => {
         handleDelete={handleDelete}
         addRow={addRow}
         name="Panels"
+        handleUpload={handleUpload}
+        selectedFile={selectedFile}
       />
+      <div className="custom-upload-container">
+        <input
+          type="file"
+          id="stockFileInput"
+          ref={fileInputRef}
+          name="panels"
+          style={{ display: "none" }}
+          accept=".xlsx, .xls"
+          onChange={handleFileChange}
+        />
+        <label htmlFor="stockFileInput" className="custom-upload-button">
+          {selectedFile
+            ? `Selected File: ${selectedFile.name}`
+            : `Choose an Excel file for panels`}
+        </label>
+        {selectedFile && (
+          <button onClick={handleUpload} className="custom-upload-button">
+            Upload
+          </button>
+        )}
+      </div>
     </div>
   );
 };

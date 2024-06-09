@@ -1,8 +1,17 @@
-import React, {useState} from "react";
+import React, { useRef, useState } from "react";
 import InputRows from "./InputRows";
 
 const Stocksheet = (props) => {
-  const {stockRows, setStockRows, panelLabel} = props;
+  const {
+    stockRows,
+    setStockRows,
+    panelLabel,
+    selectedFile,
+    handleUpload,
+    handleFileChange,
+  } = props;
+
+  const fileSheetRef = useRef(null);
   const [isInputFocused, setIsInputFocused] = useState(false);
 
   const handleInputFocus = () => {
@@ -29,10 +38,10 @@ const Stocksheet = (props) => {
   };
 
   const handleDataChange = (e, id) => {
-    const {name, value} = e.target;
+    const { name, value } = e.target;
     const updatedRows = stockRows.map((row) => {
       if (row.id === id) {
-        return {...row, [name]: value};
+        return { ...row, [name]: value };
       }
       return row;
     });
@@ -56,6 +65,27 @@ const Stocksheet = (props) => {
         handleDelete={handleDelete}
         name="Stock sheets"
       />
+      <div className="custom-upload-container">
+        <input
+          type="file"
+          id="sheetFileInput"
+          ref={fileSheetRef}
+          name="sheets"
+          style={{ display: "none" }}
+          accept=".xlsx, .xls"
+          onChange={handleFileChange}
+        />
+        <label htmlFor="sheetFileInput" className="custom-upload-button">
+          {selectedFile
+            ? `Selected File: ${selectedFile.name}`
+            : `Choose an Excel file for sheets`}
+        </label>
+        {selectedFile && (
+          <button onClick={handleUpload} className="custom-upload-button">
+            Upload
+          </button>
+        )}
+      </div>
     </div>
   );
 };

@@ -12,9 +12,11 @@ const Home = () => {
   const [totalCutLength, setTotalCutLength] = useState(0);
   const [loading, setLoading] = useState(false);
   const [usedStockSheets, setUsedStockSheets] = useState("");
-  const fileInputRef = useRef(null);
   const [rows, setRows] = useState([
     { id: 1, length: "", quantity: "", label: "djdjj", width: "", result: "" },
+  ]);
+  const [stockRows, setStockRows] = useState([
+    { id: 1, length: "", quantity: "", width: "", label: "", result: "" },
   ]);
   const [unit, setUnit] = useState("in");
   const [sheetDetails, setSheetDetails] = useState([]);
@@ -29,15 +31,23 @@ const Home = () => {
     useState("");
   const [totalCuts, setTotalCuts] = useState("");
 
-  const [selectedFile, setSelectedFile] = useState(null);
+  const [selectedPanelFile, setSelectedPanelFile] = useState(null);
+  const [selectedSheetFile, setSelectedSheetFile] = useState(null);
 
-  const handleFileChange = (e) => {
-    console.log(e.target);
+  const handleChange = (e, type) => {
+    console.log(e.target, type, e.target.name);
     const file = e.target.files[0];
-    setSelectedFile(file);
+    if (type === "panels") {
+      setSelectedPanelFile(file);
+    } else {
+      setSelectedSheetFile(file);
+    }
   };
-
-  const handleUpload = () => {
+  const handleUpload = (id) => {
+    const selectedFile =
+      id === "panels" ? selectedPanelFile : selectedSheetFile;
+    const dataRows = id === "panels" ? rows : stockRows;
+    console.log({ dataRows, id });
     if (selectedFile) {
       console.log("Uploading file:", selectedFile);
 
@@ -74,23 +84,26 @@ const Home = () => {
             id: parseInt(Math.random() * data.length),
             result: data.result ?? "",
           }));
-          const newRows = rows
+          const newRows = dataRows
             .concat(dataNeeded)
             .filter((data) => data.length !== "");
-          setRows(newRows);
-          setSelectedFile(null);
+          if (id === "sheets") {
+            setStockRows(newRows);
+          } else {
+            setRows(newRows);
+          }
+
+          setSelectedPanelFile(null);
+          setSelectedSheetFile(null);
         };
         reader.readAsBinaryString(selectedFile);
-        setSelectedFile(null);
-        fileInputRef.current.value = "";
+        setSelectedPanelFile(null);
+        setSelectedSheetFile(null);
       } else {
         console.error("Uploaded file is not an Excel file");
       }
     }
   };
-  const [stockRows, setStockRows] = useState([
-    { id: 1, length: "", quantity: "", width: "", label: "", result: "" },
-  ]);
 
   function optimizeData() {
     setLoading(true);
@@ -126,26 +139,7 @@ const Home = () => {
       ) : (
         <div className={`container app ${loading ? "blur" : ""}`}>
           <h1>Panel and Sheet Information</h1>
-          <div className="custom-upload-container">
-            <input
-              type="file"
-              id="fileInput"
-              ref={fileInputRef}
-              style={{ display: "none" }}
-              accept=".xlsx, .xls"
-              onChange={handleFileChange}
-            />
-            <label htmlFor="fileInput" className="custom-upload-button">
-              {selectedFile
-                ? `Selected File: ${selectedFile.name}`
-                : "Choose an Excel file"}
-            </label>
-            {selectedFile && (
-              <button onClick={handleUpload} className="custom-upload-button">
-                Upload
-              </button>
-            )}
-          </div>
+
           <div className="row">
             <div className="col">
               <div style={{ margin: "50px 0" }}>
@@ -153,12 +147,18 @@ const Home = () => {
                   stockRows={stockRows}
                   setStockRows={setStockRows}
                   panelLabel={panelLabel}
+                  handleFileChange={(e) => handleChange(e, "sheets")}
+                  selectedFile={selectedSheetFile}
+                  handleUpload={() => handleUpload("sheets")}
                 />
                 <div style={{ margin: "50px 0" }}>
                   <Worksheet
                     rows={rows}
                     setRows={setRows}
                     panelLabel={panelLabel}
+                    handleFileChange={(e) => handleChange(e, "panels")}
+                    selectedFile={selectedPanelFile}
+                    handleUpload={() => handleUpload("panels")}
                   />
                 </div>
               </div>
