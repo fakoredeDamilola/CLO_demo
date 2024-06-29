@@ -115,7 +115,9 @@ canvas {
   cursor: pointer;
   /* Optional: Change cursor to pointer on hover */
 }
-
+.panel-rect {
+  box-sizing: border-box;
+}
 .switch {
   position: relative;
   display: inline-block;

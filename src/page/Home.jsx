@@ -7,18 +7,40 @@ import { displayPanelAndSheetInfo } from "../utils/functions";
 import CollapsibleTable from "../components/CollapsibleTable";
 import Header from "../components/Header";
 import Spinner from "../components/Spinner";
+import SheetTable from "../components/SheetTable";
 
 const Home = () => {
+  const unitOptions = [
+    { value: "", label: "Select a Unit" },
+    { value: "in", label: "Inches" },
+    { value: "cm", label: "Centimeters" },
+    { value: "mm", label: "Millimeters" },
+  ];
   const [totalCutLength, setTotalCutLength] = useState(0);
   const [loading, setLoading] = useState(false);
   const [usedStockSheets, setUsedStockSheets] = useState("");
   const [rows, setRows] = useState([
-    { id: 1, length: "", quantity: "", label: "djdjj", width: "", result: "" },
+    {
+      id: 1,
+      length: "100",
+      quantity: "100",
+      label: "djdjj",
+      width: "100",
+      result: "50",
+    },
   ]);
   const [stockRows, setStockRows] = useState([
-    { id: 1, length: "", quantity: "", width: "", label: "", result: "" },
+    {
+      id: 1,
+      length: "1000",
+      quantity: "1",
+      width: "1000",
+      label: "",
+      result: "",
+    },
   ]);
   const [unit, setUnit] = useState("in");
+  const [optimizationCompleted, setOptimizationCompleted] = useState(false);
   const [sheetDetails, setSheetDetails] = useState([]);
   const [panelThickness, setPanelThickness] = useState("0");
   const [panelLabel, setPanelLabel] = useState(false);
@@ -30,6 +52,7 @@ const Home = () => {
   const [totalWastedAreaPercentage, setTotalWastedAreaPercentage] =
     useState("");
   const [totalCuts, setTotalCuts] = useState("");
+  const [globalStatistics, setGlobalStatistics] = useState([]);
 
   const [selectedPanelFile, setSelectedPanelFile] = useState(null);
   const [selectedSheetFile, setSelectedSheetFile] = useState(null);
@@ -43,6 +66,7 @@ const Home = () => {
       setSelectedSheetFile(file);
     }
   };
+
   const handleUpload = (id) => {
     const selectedFile =
       id === "panels" ? selectedPanelFile : selectedSheetFile;
@@ -105,9 +129,14 @@ const Home = () => {
     }
   };
 
+  const handleUnitInput = (event) => {
+    setUnit(event.target.value);
+  };
+
   function optimizeData() {
     setLoading(true);
-    const results = displayPanelAndSheetInfo(
+    setOptimizationCompleted(false);
+    const response = displayPanelAndSheetInfo(
       stockRows,
       rows,
       panelLabel,
@@ -116,6 +145,9 @@ const Home = () => {
         : parseInt(panelThickness),
       unit
     );
+    const { totalData: results, getGlobalSheetStatistics } = response;
+    setGlobalStatistics(getGlobalSheetStatistics);
+    setOptimizationCompleted(true);
     setTotalCutLength(results.totalCutLength);
     setUsedStockSheets(results.usedStockSheets);
     setTotalArea(results.totalArea);
@@ -167,22 +199,42 @@ const Home = () => {
           <br />
 
           <div className="row border bg-light pt-4">
-            <div className="col-md-5">
+            <div className="col-md-6">
               <div className="form-group">
                 <label htmlFor="cutThickness">
                   Cut / Blade / Kerf Thickness:
                 </label>
-                <input
-                  type="text"
-                  id="cutThickness"
-                  name="cutThickness"
-                  value={panelThickness}
-                  onChange={(e) => setPanelThickness(e.target.value)}
-                />
+                <div>
+                  <input
+                    type="text"
+                    id="cutThickness"
+                    name="cutThickness"
+                    value={panelThickness}
+                    onChange={(e) => setPanelThickness(e.target.value)}
+                  />
+                </div>
               </div>
             </div>
-
-            <div className="col-md-3">
+            <div className="col-md-6">
+              <div className="form-group">
+                <label htmlFor="exampleSelect">Select Unit</label>
+                <select
+                  className="form-control"
+                  id="exampleSelect"
+                  value={unit}
+                  onChange={handleUnitInput}
+                >
+                  {unitOptions.map((option) => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+          </div>
+          <div className="row border bg-light pt-4">
+            <div className="col-md-6">
               <div className="form-group">
                 <label htmlFor="panelLabels">Labels on Panels:</label>
                 <label className="switch">
@@ -197,7 +249,7 @@ const Home = () => {
               </div>
             </div>
 
-            <div className="col-md-4">
+            <div className="col-md-6">
               <div className="form-group">
                 <label htmlFor="singleSheet">
                   Use Only One Sheet from Stock:
@@ -210,62 +262,46 @@ const Home = () => {
             </div>
           </div>
 
-          <div className="container mt-5">
-            <h2>Global Statistics</h2>
-          </div>
-          <br />
-          <br />
-
-          <div>
+          <div className="my-5">
             <div>
               <h2>Drawing / Visualization:</h2>
               <div>
                 <div id="labels">
                   <h6>Dimension (L x W)</h6>
-                  {/* <p>
-                    &darr;
-                    <span
-                      id="totalSheetLength"
-                      style={{ color: "red" }}
-                    ></span>{" "}
-                    &rarr;
-                    <span id="totalWidthLabel" style={{ color: "red" }}></span>
-                  </p> */}
                 </div>
                 <div id="svgContainer">SVG will be appended here</div>
 
-                <p id="ede"></p>
                 <canvas
                   id="outerCanvas"
                   style={{ borderColor: "black" }}
                   width="100"
                   height="100"
                 ></canvas>
-
-                <canvas
-                  id="sheetPanelCanvas"
-                  style={{ position: "absolute", top: 0, left: 0 }}
-                ></canvas>
-
-                <p></p>
               </div>
-              <div className="container">
-                <div id="result" className="sheets">
-                  Sheets representation will be displayed here
+              {optimizationCompleted && (
+                <div>
+                  <div className="container">
+                    <div id="result" className="sheets">
+                      Sheets representation will be displayed here
+                    </div>
+                  </div>
+                  <div className="mb-5">
+                    <CollapsibleTable
+                      totalUsedArea={totalUsedArea}
+                      totalUsedAreaPercentage={totalUsedAreaPercentage}
+                      totalCutLength={totalCutLength}
+                      totalCuts={totalCuts}
+                      sheetDetails={sheetDetails}
+                      totalWastedArea={totalWastedArea}
+                      totalWastedAreaPercentage={totalWastedAreaPercentage}
+                      panelThickness={panelThickness}
+                    />
+                  </div>
+                  <div className="mb-5">
+                    <SheetTable globalStatistics={globalStatistics} />
+                  </div>
                 </div>
-              </div>
-              <div className="mb-5">
-                <CollapsibleTable
-                  totalUsedArea={totalUsedArea}
-                  totalUsedAreaPercentage={totalUsedAreaPercentage}
-                  totalCutLength={totalCutLength}
-                  totalCuts={totalCuts}
-                  sheetDetails={sheetDetails}
-                  totalWastedArea={totalWastedArea}
-                  totalWastedAreaPercentage={totalWastedAreaPercentage}
-                  panelThickness={panelThickness}
-                />
-              </div>
+              )}
             </div>
             <br />
           </div>

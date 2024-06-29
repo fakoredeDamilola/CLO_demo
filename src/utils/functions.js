@@ -12,11 +12,11 @@ export function displayPanelAndSheetInfo(
 
   // Function to generate a random color in hexadecimal format
   function getRandomColor() {
-    const letters = "0123456789ABCDEF";
-    let color = "#";
-    for (let i = 0; i < 6; i++) {
-      color += letters[Math.floor(Math.random() * 16)];
-    }
+    const r = Math.floor(Math.random() * 128) + 128;
+    const g = Math.floor(Math.random() * 128) + 128;
+    const b = Math.floor(Math.random() * 128) + 128;
+
+    const color = `rgb(${r},${g},${b})`;
     return color;
   }
 
@@ -241,8 +241,7 @@ export function displayPanelAndSheetInfo(
   //---------------------------------------------------------------------
 
   const panels = [];
-  let TAused = 0;
-  let remArea = 0;
+  const getGlobalSheetStatistics = [];
 
   const panelRegex =
     /Panel \((.*?)\) ==> (\d+) x (\d+) \((R|NR)\) is placed on Sheet \((.*?)\) (\d+) x (\d+)\. <br> Area used: (\d+), Remaining area: (\d+), Remaining length: (\d+), Remaining width: (\d+), Placed: (true|false), X: (\d+), Y: (\d+), panelGroup: \((.*?)\), sheetGroup: \((.*?)\), col: \((.*?)\)<br>-----------<br>/g;
@@ -323,7 +322,7 @@ export function displayPanelAndSheetInfo(
       uniqueSheets.set(sheetKey, { panels: sheetPanels, count: 1 });
     }
   }
-
+  console.log({ uniqueSheets });
   // Variables to hold the total values for all sheets
   let totalArea = 0;
   let totalAreaUsed = 0;
@@ -362,24 +361,6 @@ export function displayPanelAndSheetInfo(
       sheetHeight * scale
     }" x="${margin}" y="${margin}" style="background-color: white;">`;
 
-    // Add dimensions for width and height
-    const midX = (containerWidth * scale) / 2;
-    const midY = (containerHeight * scale) / 2;
-
-    svgString += `<line x1="820" y1="${30}" x2="${830}" y2="${800}" stroke="black" strokeWidth="10" marker-end="url(#arrow)" />`; // Width dimension line
-    svgString += `<text x="${midX}" y="${-15}" text-anchor="middle" font-size="10" fill="black">${
-      containerWidth * scale
-    }</text>`; // Width text
-
-    svgString += `<line x1="${-10}" y1="0" x2="${-10}" y2="${
-      containerHeight * scale
-    }" stroke="black" strokeWidth="1" marker-end="url(#arrow)" />`; // Height dimension line
-    svgString += `<text x="${-15}" y="${midY}" text-anchor="middle" font-size="10" fill="black" transform="rotate(-90, -15, ${midY})">${
-      containerHeight * scale
-    }</text>`; // Height text
-
-    console.log({ svgString });
-
     // Add a black border rectangle inside the sheet SVG
     svgString += `<rect x="0" y="0" width="${sheetWidth * scale}" height="${
       sheetHeight * scale
@@ -409,9 +390,12 @@ export function displayPanelAndSheetInfo(
           panel.panelName
         }</text>`;
       } else {
-        svgString += `<rect x="${scaledX}" y="${scaledY}" width="${scaledWidth}" height="${scaledLength}" fill="${panel.panelColor}" stroke="black" stroke-width="${panelThickness}" class="panel-rect">
+        svgString += `
+    
+        <rect x="${scaledX}" y="${scaledY}" width="${scaledWidth}" height="${scaledLength}" fill="${panel.panelColor}" vector-effect="non-scaling-stroke" stroke="black" stroke-width="${panelThickness}" class="panel-rect" >
         <title>${panel.panelName}: ${panel.length} x ${panel.width}, Rotation: ${panel.rotation}, Panel (XY): ${scaledX} ${scaledY}</title>
-      </rect>`;
+      </rect>
+     `;
       }
     });
 
@@ -423,6 +407,18 @@ export function displayPanelAndSheetInfo(
     }" fill="black" font-size="16px">${sheetName}: x${sheetCount} </text>`;
 
     svgString += `</svg>`; // Closing container SVG
+    const totalAreaUsedPercentage = (sheetTotalAreaUsed / sheetTotalArea) * 100;
+    for (let i = 1; i <= sheetCount; i++) {
+      getGlobalSheetStatistics.push({
+        stockSheetWidth: sheetWidth,
+        stockSheetHeight: sheetHeight,
+        usedArea: sheetTotalAreaUsed,
+        totalAreaUsedPercentage,
+        wastedArea: sheetTotalArea - sheetTotalAreaUsed,
+        totalWastedAreaPercentage: 100 - totalAreaUsedPercentage,
+        panels: sheetData.panels.length,
+      });
+    }
   });
 
   // Calculate overall percentages
@@ -430,23 +426,13 @@ export function displayPanelAndSheetInfo(
   const totalWastedAreaPercentage = 100 - totalUsedAreaPercentage;
   const percentTotalArea = totalUsedAreaPercentage + totalWastedAreaPercentage;
 
-  // Update the DOM with the calculated values
-  // document.getElementById("totalArea").value = totalArea;
-  // document.getElementById("percentTotalArea").value = percentTotalArea;
-  // document.getElementById("totalUsedArea").value = totalAreaUsed;
-  // document.getElementById("totalUsedAreaPercentage").value =
-  //   totalUsedAreaPercentage.toFixed(1);
-  // document.getElementById("totalWastedArea").value = totalRemainingArea;
-  // document.getElementById("totalWastedAreaPercentage").value =
-  //   totalWastedAreaPercentage.toFixed(1);
-
   document.getElementById("svgContainer").innerHTML = svgString;
 
   const singleSheet = document.getElementById("singleSheet").checked
     ? "on"
     : "off";
 
-  return {
+  const totalData = {
     totalArea,
     percentTotalArea,
     totalAreaUsed,
@@ -460,6 +446,8 @@ export function displayPanelAndSheetInfo(
     panelThickness,
     sheetDetails,
   };
+
+  return { totalData, getGlobalSheetStatistics };
 }
 
 // document
