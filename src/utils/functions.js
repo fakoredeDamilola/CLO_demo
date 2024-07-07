@@ -79,7 +79,7 @@ export function displayPanelAndSheetInfo(
   // Call bestFitDecreasing function after extracting panel and sheet data
 
   function bestFitDecreasing(panels, sheets) {
-    // console.clear();
+    console.clear();
     const sortedPanels = panels.sort(
       (a, b) =>
         parseInt(b.length) * parseInt(b.width) -
@@ -89,9 +89,9 @@ export function displayPanelAndSheetInfo(
     for (let i = 0; i < sheets.length; i++) {
       const sheet = sheets[i];
       if (!sheet.placed) {
-        const grid = Array(parseInt(sheet.length))
+        const grid = Array(parseInt(sheet.length) + panelThickness)
           .fill()
-          .map(() => Array(parseInt(sheet.width)).fill(0));
+          .map(() => Array(parseInt(sheet.width) + panelThickness).fill(0)); //---here-----
         let areaUsed = 0;
 
         for (let j = 0; j < sortedPanels.length; j++) {
@@ -109,13 +109,22 @@ export function displayPanelAndSheetInfo(
               } else {
                 panel.rotated = false;
               }
-              for (let row = 0; row <= grid.length - length; row++) {
-                for (let col = 0; col <= grid[0].length - width; col++) {
+              for (
+                let row = 0;
+                row <= grid.length - length - panelThickness;
+                row++
+              ) {
+                for (
+                  let col = 0;
+                  col <= grid[0].length - width - panelThickness;
+                  col++
+                ) {
                   if (!grid[row][col]) {
-                    let canPlace = true;
+                    let canPlace = true; //---here-----
 
-                    for (let r = row; r < row + length; r++) {
-                      for (let c = col; c < col + width; c++) {
+                    for (let r = row; r < row + length + panelThickness; r++) {
+                      for (let c = col; c < col + width + panelThickness; c++) {
+                        //---here-----
                         // Ensure placement doesn't exceed sheet boundaries
                         if (
                           r >= grid.length ||
@@ -131,8 +140,17 @@ export function displayPanelAndSheetInfo(
 
                     if (canPlace) {
                       // Mark panel cells as occupied
-                      for (let r = row; r < row + length; r++) {
-                        for (let c = col; c < col + width; c++) {
+                      for (
+                        let r = row;
+                        r < row + length + panelThickness;
+                        r++
+                      ) {
+                        for (
+                          let c = col;
+                          c < col + width + panelThickness;
+                          c++
+                        ) {
+                          //---here-----
                           grid[r][c] = 1;
                         }
                       }
@@ -290,8 +308,8 @@ export function displayPanelAndSheetInfo(
 
   const containerWidth = sheetTable[0].width; // Define the container width in pixels
   const containerHeight = sheetTable[0].length; // Define the container height in pixels
-  const margin = 10;
-  console.log({ containerHeight, containerWidth, sheetTable });
+  const margin = 25;
+  // console.log({ containerHeight, containerWidth, sheetTable });
 
   // Determine the scaling factor based on the container size
   const maxSheetWidth = Math.max(...sheetData.map((sheet) => sheet.width));
@@ -322,12 +340,13 @@ export function displayPanelAndSheetInfo(
       uniqueSheets.set(sheetKey, { panels: sheetPanels, count: 1 });
     }
   }
-  console.log({ uniqueSheets });
+  // console.log({ uniqueSheets });
   // Variables to hold the total values for all sheets
   let totalArea = 0;
   let totalAreaUsed = 0;
   let totalRemainingArea = 0;
   const sheetDetails = [];
+
   uniqueSheets.forEach((sheetData, sheetKey) => {
     const sheetName = sheetData.panels[0].sheetGroup;
     const sheetPanels = sheetData.panels;
@@ -351,6 +370,7 @@ export function displayPanelAndSheetInfo(
     sheetDetails.push(
       `(${sheetWidth}${unit} x ${sheetHeight}${unit}) X${sheetCount}`
     );
+
     // Container SVG with light yellow background
     svgString += `<svg width="${parseInt(containerWidth) + 70}" height="${
       parseInt(containerHeight) + 20
@@ -379,34 +399,80 @@ export function displayPanelAndSheetInfo(
       if (panelLabels === "on") {
         svgString += `<rect x="${scaledX}" y="${scaledY}" width="${scaledWidth}" height="${scaledLength}" fill="${
           panel.panelColor
-        }" stroke="black" stroke-width="${panelThickness}" class="panel-rect">
+        }" stroke="black" stroke-width="${1}" class="panel-rect">
         <title>${panel.panelName}: ${panel.length} x ${
           panel.width
         }, Rotation: ${
           panel.rotation
         }, Panel (XY): ${scaledX} ${scaledY}</title>
       </rect>
-      <text x="${scaledX + 5}" y="${scaledY + 20}" fill="black">${
+      <text x="${scaledX + scaledWidth / 2}" y="${
+          scaledY + 25
+        }" text-anchor="middle" font-size="10" fill="black">${
           panel.panelName
+        }</text>
+      <text x="${scaledX + 10}" y="${
+          scaledY + scaledLength / 2
+        }" text-anchor="left" font-size="8" fill="black" transform="rotate(-90, ${
+          scaledX + 10
+        }, ${scaledY + scaledLength / 2})">${panel.length}</text>
+      <text x="${scaledX + scaledWidth / 2}" y="${
+          scaledY + 10
+        }" text-anchor="middle" font-size="8" fill="black">${
+          panel.width
         }</text>`;
       } else {
-        svgString += `
-    
-        <rect x="${scaledX}" y="${scaledY}" width="${scaledWidth}" height="${scaledLength}" fill="${panel.panelColor}" vector-effect="non-scaling-stroke" stroke="black" stroke-width="${panelThickness}" class="panel-rect" >
-        <title>${panel.panelName}: ${panel.length} x ${panel.width}, Rotation: ${panel.rotation}, Panel (XY): ${scaledX} ${scaledY}</title>
+        svgString += `    
+        <rect x="${scaledX}" y="${scaledY}" width="${scaledWidth}" height="${scaledLength}" fill="${
+          panel.panelColor
+        }" vector-effect="non-scaling-stroke" stroke="black" stroke-width="${1}" 
+        class="panel-rect" >
+        <title>${panel.panelName}: ${panel.length} x ${
+          panel.width
+        }, Rotation: ${
+          panel.rotation
+        }, Panel (XY): ${scaledX} ${scaledY}</title>
       </rect>
      `;
       }
-    });
+    }); //---here..... stroke-width in 'else' and text in 'if'-----
 
     svgString += `</svg>`; // Closing sheet SVG
 
+    // Add sheet length and width labels outside the sheet border
+
+    svgString += `<text x="${sheetWidth * scale + margin + 30}" y="${
+      sheetHeight / 2 + margin
+    }" fill="red" font-size="14" transform="rotate(-90, ${
+      sheetWidth * scale + margin + 30
+    }, ${sheetHeight / 2 + margin})">${sheetHeight}</text>`;
+
+    svgString += `<line x1="${
+      sheetWidth * scale + margin + 15
+    }" y1="${margin}" x2="${sheetWidth * scale + margin + 15}" y2="${
+      sheetHeight * scale + margin
+    }" stroke="red" stroke-width="1" marker-end="url(#arrow)" marker-start="url(#arrow)"/>`;
+
+    svgString += `<text x="${sheetWidth / 2.5}" y="${
+      sheetHeight * scale + margin + 17
+    }" fill="red" font-size="14">${sheetWidth}</text>`;
+
+    svgString += `<line x1="${margin}" y1="${
+      sheetHeight * scale + margin + 20
+    }" x2="${sheetWidth * scale + margin}" y2="${
+      sheetHeight * scale + margin + 20
+    }" stroke="red" stroke-width="1" marker-end="url(#arrow)" marker-start="url(#arrow)"/>`;
+
+    // Define the arrow marker
+    svgString += `<defs><marker id="arrow" viewBox="0 0 2 10" refX="1" refY="5" markerWidth="2" markerHeight="10" orient="auto"><rect x="0" y="0" width="2" height="10" fill="red"/></marker></defs>`;
+
     // Add the sheet count label outside the inner sheet SVG, at the bottom
     svgString += `<text x="${margin}" y="${
-      sheetHeight * scale + margin + 20
+      sheetHeight * scale + margin + 40
     }" fill="black" font-size="16px">${sheetName}: x${sheetCount} </text>`;
 
     svgString += `</svg>`; // Closing container SVG
+
     const totalAreaUsedPercentage = (sheetTotalAreaUsed / sheetTotalArea) * 100;
     for (let i = 1; i <= sheetCount; i++) {
       getGlobalSheetStatistics.push({

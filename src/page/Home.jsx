@@ -23,8 +23,8 @@ const Home = () => {
     {
       id: 1,
       length: "100",
-      quantity: "100",
-      label: "djdjj",
+      quantity: "10",
+      label: "pane",
       width: "100",
       result: "50",
     },
@@ -32,10 +32,10 @@ const Home = () => {
   const [stockRows, setStockRows] = useState([
     {
       id: 1,
-      length: "1000",
+      length: "500",
       quantity: "1",
-      width: "1000",
-      label: "",
+      width: "700",
+      label: "shit",
       result: "",
     },
   ]);
@@ -43,7 +43,7 @@ const Home = () => {
   const [optimizationCompleted, setOptimizationCompleted] = useState(false);
   const [sheetDetails, setSheetDetails] = useState([]);
   const [panelThickness, setPanelThickness] = useState("0");
-  const [panelLabel, setPanelLabel] = useState(false);
+  const [panelLabel, setPanelLabel] = useState(true);
   const [totalArea, setTotalArea] = useState("");
   const [percentTotalArea, setPercentTotalArea] = useState("");
   const [totalUsedArea, setTotalUsedArea] = useState("");
@@ -140,8 +140,8 @@ const Home = () => {
       stockRows,
       rows,
       panelLabel,
-      parseInt(panelThickness) <= 0 || panelThickness === ""
-        ? 1
+      parseInt(panelThickness) <= -1 || panelThickness === ""
+        ? 0
         : parseInt(panelThickness),
       unit
     );
@@ -273,9 +273,9 @@ const Home = () => {
 
                 <canvas
                   id="outerCanvas"
-                  style={{ borderColor: "black" }}
-                  width="100"
-                  height="100"
+                  style={{ borderColor: "white" }}
+                  width="1"
+                  height="1"
                 ></canvas>
               </div>
               {optimizationCompleted && (
