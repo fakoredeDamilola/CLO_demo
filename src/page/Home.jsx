@@ -16,6 +16,7 @@ const Home = () => {
     { value: "cm", label: "Centimeters" },
     { value: "mm", label: "Millimeters" },
   ];
+
   const [totalCutLength, setTotalCutLength] = useState(0);
   const [loading, setLoading] = useState(false);
   const [usedStockSheets, setUsedStockSheets] = useState("");
@@ -29,6 +30,7 @@ const Home = () => {
       material: "",
       result: "50",
       grainDirection: "horizontal",
+      selected: true,
     },
   ]);
   const [stockSheetRows, setStockSheetRows] = useState([
@@ -40,6 +42,7 @@ const Home = () => {
       label: "sheet",
       material: "",
       result: "",
+      selected: true,
       grainDirection: "vertical",
     },
   ]);
@@ -148,9 +151,15 @@ const Home = () => {
     // getActualValueBasedOnUnit(unit);
     setLoading(true);
     setOptimizationCompleted(false);
+
+    const filteredStockSheet = filterUnusedData(stockSheetRows);
+    const filteredPanelSheet = filterUnusedData(panelRows);
+
+    console.log({ filteredStockSheet, filteredPanelSheet });
+
     const response = displayPanelAndSheetInfo(
-      stockSheetRows,
-      panelRows,
+      filteredStockSheet,
+      filteredPanelSheet,
       panelLabel,
       parseInt(panelThickness) <= -1 || panelThickness === ""
         ? 0
@@ -174,6 +183,10 @@ const Home = () => {
     console.log({ results });
     setLoading(false);
   }
+
+  const filterUnusedData = (data) => {
+    return data.filter((data) => data.selected);
+  };
 
   function getActualValueBasedOnUnit(unit) {
     console.log("mdkeoeo demkdkkdjlkm doldklkdop");

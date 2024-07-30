@@ -33,6 +33,8 @@ const Stocksheet = (props) => {
       quantity: "",
       label: "",
       material: "",
+      selected: true,
+      grainDirection: "vertical",
     };
     const newRowId = Date.now().toString();
     const newRow = {
@@ -47,6 +49,16 @@ const Stocksheet = (props) => {
     const updatedRows = stockSheetRows.map((row) => {
       if (row.id === id) {
         return { ...row, [name]: value };
+      }
+      return row;
+    });
+    setStockSheetRows(updatedRows);
+  };
+
+  const handleSelect = (id) => {
+    const updatedRows = stockSheetRows.map((row) => {
+      if (row.id === id) {
+        return { ...row, selected: !row.selected };
       }
       return row;
     });
@@ -82,6 +94,7 @@ const Stocksheet = (props) => {
         name="Stock sheets"
         considerGrainDirection={considerGrainDirection}
         changeGrainDirection={changeGrainDirection}
+        handleSelect={handleSelect}
       />
       <div className="custom-upload-container">
         <input

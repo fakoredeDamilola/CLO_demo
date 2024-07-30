@@ -24,6 +24,8 @@ const Panelsheet = (props) => {
       quantity: "",
       label: "",
       material: "",
+      selected: true,
+      grainDirection: "vertical",
     };
     const newRowId = Date.now().toString();
     const newRow = {
@@ -37,6 +39,16 @@ const Panelsheet = (props) => {
 
   const handleInputFocus = () => {
     setIsInputFocused(true);
+  };
+
+  const handleSelect = (id) => {
+    const updatedRows = panelRows.map((row) => {
+      if (row.id === id) {
+        return { ...row, selected: !row.selected };
+      }
+      return row;
+    });
+    setPanelRows(updatedRows);
   };
 
   const changeGrainDirection = (newGrain, id) => {
@@ -85,6 +97,7 @@ const Panelsheet = (props) => {
         selectedFile={selectedFile}
         considerGrainDirection={considerGrainDirection}
         changeGrainDirection={changeGrainDirection}
+        handleSelect={handleSelect}
       />
       <div className="custom-upload-container">
         <input
