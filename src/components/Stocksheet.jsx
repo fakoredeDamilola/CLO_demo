@@ -3,12 +3,15 @@ import InputRows from "./InputRows";
 
 const Stocksheet = (props) => {
   const {
-    stockRows,
-    setStockRows,
+    stockSheetRows,
+    setStockSheetRows,
     panelLabel,
     selectedFile,
     handleUpload,
     handleFileChange,
+    setChangeIntialUnit,
+    addMaterialToSheets,
+    considerGrainDirection,
   } = props;
 
   const fileSheetRef = useRef(null);
@@ -22,35 +25,47 @@ const Stocksheet = (props) => {
     setIsInputFocused(false);
   };
   const addRow = () => {
+    setChangeIntialUnit(true);
     const initialRow = {
       id: "",
       length: "",
       width: "",
       quantity: "",
       label: "",
+      material: "",
     };
     const newRowId = Date.now().toString();
     const newRow = {
       ...initialRow,
       id: newRowId,
     };
-    setStockRows([...stockRows, newRow]);
+    setStockSheetRows([...stockSheetRows, newRow]);
   };
 
   const handleDataChange = (e, id) => {
     const { name, value } = e.target;
-    const updatedRows = stockRows.map((row) => {
+    const updatedRows = stockSheetRows.map((row) => {
       if (row.id === id) {
         return { ...row, [name]: value };
       }
       return row;
     });
-    setStockRows(updatedRows);
+    setStockSheetRows(updatedRows);
+  };
+
+  const changeGrainDirection = (newGrain, id) => {
+    const updatedRows = stockSheetRows.map((row) => {
+      if (row.id === id) {
+        return { ...row, grainDirection: newGrain.name };
+      }
+      return row;
+    });
+    setStockSheetRows(updatedRows);
   };
 
   const handleDelete = (id) => {
-    const updatedRows = stockRows.filter((row) => row.id !== id);
-    setStockRows(updatedRows);
+    const updatedRows = stockSheetRows.filter((row) => row.id !== id);
+    setStockSheetRows(updatedRows);
   };
 
   return (
@@ -59,11 +74,14 @@ const Stocksheet = (props) => {
         handleDataChange={handleDataChange}
         handleInputFocus={handleInputFocus}
         handleInputBlur={handleInputBlur}
-        rows={stockRows}
+        rows={stockSheetRows}
         panelLabel={panelLabel}
         addRow={addRow}
+        addMaterialToSheets={addMaterialToSheets}
         handleDelete={handleDelete}
         name="Stock sheets"
+        considerGrainDirection={considerGrainDirection}
+        changeGrainDirection={changeGrainDirection}
       />
       <div className="custom-upload-container">
         <input

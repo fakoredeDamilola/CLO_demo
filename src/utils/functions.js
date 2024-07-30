@@ -1,3 +1,17 @@
+function generateRandomString(length) {
+  const characters =
+    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+  let result = "";
+  const charactersLength = characters.length;
+
+  for (let i = 0; i < length; i++) {
+    const randomIndex = Math.floor(Math.random() * charactersLength);
+    result += characters[randomIndex];
+  }
+
+  return result;
+}
+
 export function displayPanelAndSheetInfo(
   sheetTable,
   panelTable,
@@ -5,7 +19,6 @@ export function displayPanelAndSheetInfo(
   panelThickness,
   unit
 ) {
-  console.log({ panelThickness });
   let panelInfo = "Panel Information:<br>";
   let sheetInfo = "Sheet Information:<br>";
   let detailInfo = "Detail Information:<br>-------<br>";
@@ -54,8 +67,16 @@ export function displayPanelAndSheetInfo(
   // Extract sheet information
   const sheetData = [];
   sheetTable.forEach((row, index) => {
+    let useRandomString = false,
+      name = "";
     if (index + 1 !== 0) {
-      const name = row.label;
+      name = row.label;
+      if (row.label === "") {
+        useRandomString = true;
+        name = `${generateRandomString(5)}_${index}`;
+      } else {
+        name = row.label;
+      }
       const length = row.length;
       const width = row.width;
       const quantity = row.quantity;
@@ -63,11 +84,12 @@ export function displayPanelAndSheetInfo(
       for (let i = 1; i <= quantity; i++) {
         sheetInfo += `sid: ${
           sheetData.length + 1
-        } sheet: ${name}_q${i} - Length: ${length}, Width: ${width}<br>`;
+        } sheet: ${name}_q${i} - Length: ${length}, Width: ${width}, useRandomString: ${useRandomString}<br>`;
         sheetData.push({
           sid: `${sheetData.length + 1}`,
           sheetGroup: `${name}`,
           sheet: `${name}_q${i}`,
+          useRandomString,
           length,
           width,
           qty: 1,
@@ -79,7 +101,7 @@ export function displayPanelAndSheetInfo(
   // Call bestFitDecreasing function after extracting panel and sheet data
 
   function bestFitDecreasing(panels, sheets) {
-    console.clear();
+    // console.clear();
     const sortedPanels = panels.sort(
       (a, b) =>
         parseInt(b.length) * parseInt(b.width) -
@@ -309,7 +331,6 @@ export function displayPanelAndSheetInfo(
   const containerWidth = sheetTable[0].width; // Define the container width in pixels
   const containerHeight = sheetTable[0].length; // Define the container height in pixels
   const margin = 25;
-  // console.log({ containerHeight, containerWidth, sheetTable });
 
   // Determine the scaling factor based on the container size
   const maxSheetWidth = Math.max(...sheetData.map((sheet) => sheet.width));

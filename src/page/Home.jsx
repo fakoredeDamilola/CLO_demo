@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import Worksheet from "../components/Worksheet";
+import Panelsheet from "../components/Panelsheet";
 import Stocksheet from "../components/Stocksheet";
 import { read, utils } from "xlsx";
 import "../home.css";
@@ -19,24 +19,28 @@ const Home = () => {
   const [totalCutLength, setTotalCutLength] = useState(0);
   const [loading, setLoading] = useState(false);
   const [usedStockSheets, setUsedStockSheets] = useState("");
-  const [rows, setRows] = useState([
+  const [panelRows, setPanelRows] = useState([
     {
       id: 1,
       length: "100",
       quantity: "10",
       label: "pane",
       width: "100",
+      material: "",
       result: "50",
+      grainDirection: "horizontal",
     },
   ]);
-  const [stockRows, setStockRows] = useState([
+  const [stockSheetRows, setStockSheetRows] = useState([
     {
       id: 1,
       length: "500",
       quantity: "1",
       width: "700",
-      label: "shit",
+      label: "sheet",
+      material: "",
       result: "",
+      grainDirection: "vertical",
     },
   ]);
   const [unit, setUnit] = useState("in");
@@ -51,11 +55,18 @@ const Home = () => {
   const [totalWastedArea, setTotalWastedArea] = useState("");
   const [totalWastedAreaPercentage, setTotalWastedAreaPercentage] =
     useState("");
+  const [changeIntialUnit, setChangeIntialUnit] = useState(false);
   const [totalCuts, setTotalCuts] = useState("");
   const [globalStatistics, setGlobalStatistics] = useState([]);
 
   const [selectedPanelFile, setSelectedPanelFile] = useState(null);
   const [selectedSheetFile, setSelectedSheetFile] = useState(null);
+  const [addMaterialToSheets, setAddMaterialToSheets] = useState(false);
+  const [considerGrainDirection, setConsiderGrainDirection] = useState(false);
+
+  useEffect(() => {
+    setChangeIntialUnit(false);
+  }, []);
 
   const handleChange = (e, type) => {
     console.log(e.target, type, e.target.name);
@@ -70,7 +81,7 @@ const Home = () => {
   const handleUpload = (id) => {
     const selectedFile =
       id === "panels" ? selectedPanelFile : selectedSheetFile;
-    const dataRows = id === "panels" ? rows : stockRows;
+    const dataRows = id === "panels" ? panelRows : stockSheetRows;
     console.log({ dataRows, id });
     if (selectedFile) {
       console.log("Uploading file:", selectedFile);
@@ -86,7 +97,7 @@ const Home = () => {
           const sheetName = workbook.SheetNames[0];
           const sheet = workbook.Sheets[sheetName];
           const sheetData = utils.sheet_to_json(sheet, { header: 1 });
-          console.log({ sheetData });
+
           // Assuming the first row contains headers
           const headers = sheetData[0];
           const parsedData = [];
@@ -112,9 +123,9 @@ const Home = () => {
             .concat(dataNeeded)
             .filter((data) => data.length !== "");
           if (id === "sheets") {
-            setStockRows(newRows);
+            setStockSheetRows(newRows);
           } else {
-            setRows(newRows);
+            setPanelRows(newRows);
           }
 
           setSelectedPanelFile(null);
@@ -134,11 +145,12 @@ const Home = () => {
   };
 
   function optimizeData() {
+    // getActualValueBasedOnUnit(unit);
     setLoading(true);
     setOptimizationCompleted(false);
     const response = displayPanelAndSheetInfo(
-      stockRows,
-      rows,
+      stockSheetRows,
+      panelRows,
       panelLabel,
       parseInt(panelThickness) <= -1 || panelThickness === ""
         ? 0
@@ -159,8 +171,43 @@ const Home = () => {
     setTotalCuts(results.totalCuts);
     setSheetDetails(results.sheetDetails);
     setPanelThickness(results.panelThickness);
+    console.log({ results });
     setLoading(false);
   }
+
+  function getActualValueBasedOnUnit(unit) {
+    console.log("mdkeoeo demkdkkdjlkm doldklkdop");
+    const DPIValues = getDPI();
+    console.log({ DPIValues });
+    if (!changeIntialUnit) {
+      console.log({ unit, changeIntialUnit });
+      // whatever unit put there is the data we are going with
+      if (unit === "in") {
+        const newStockValues = stockSheetRows.map((data) => {
+          return {
+            length: parseInt(data.length) * DPIValues,
+            width: parseInt(data.width) * DPIValues,
+          };
+        });
+        console.log({ newStockValues });
+      }
+    }
+  }
+
+  function getDPI() {
+    // Create a temporary element to measure DPI
+    const div = document.createElement("div");
+    div.style.width = "1in";
+    document.body.appendChild(div);
+    const dpi = div.offsetWidth;
+    document.body.removeChild(div);
+    return dpi;
+  }
+
+  const conversionList = {
+    cm: "0.026458333cm",
+    in: "0.0104166665in",
+  };
 
   return (
     <div>
@@ -176,21 +223,27 @@ const Home = () => {
             <div className="col">
               <div style={{ margin: "50px 0" }}>
                 <Stocksheet
-                  stockRows={stockRows}
-                  setStockRows={setStockRows}
+                  stockSheetRows={stockSheetRows}
+                  setStockSheetRows={setStockSheetRows}
                   panelLabel={panelLabel}
                   handleFileChange={(e) => handleChange(e, "sheets")}
                   selectedFile={selectedSheetFile}
+                  setChangeIntialUnit={setChangeIntialUnit}
                   handleUpload={() => handleUpload("sheets")}
+                  addMaterialToSheets={addMaterialToSheets}
+                  considerGrainDirection={considerGrainDirection}
                 />
                 <div style={{ margin: "50px 0" }}>
-                  <Worksheet
-                    rows={rows}
-                    setRows={setRows}
+                  <Panelsheet
+                    panelRows={panelRows}
+                    setPanelRows={setPanelRows}
                     panelLabel={panelLabel}
+                    setChangeIntialUnit={setChangeIntialUnit}
                     handleFileChange={(e) => handleChange(e, "panels")}
                     selectedFile={selectedPanelFile}
                     handleUpload={() => handleUpload("panels")}
+                    addMaterialToSheets={addMaterialToSheets}
+                    considerGrainDirection={considerGrainDirection}
                   />
                 </div>
               </div>
@@ -199,7 +252,7 @@ const Home = () => {
           <br />
 
           <div className="row border bg-light pt-4">
-            <div className="col-md-6">
+            <div className="col-md-4">
               <div className="form-group">
                 <label htmlFor="cutThickness">
                   Cut / Blade / Kerf Thickness:
@@ -215,7 +268,7 @@ const Home = () => {
                 </div>
               </div>
             </div>
-            <div className="col-md-6">
+            <div className="col-md-4">
               <div className="form-group">
                 <label htmlFor="exampleSelect">Select Unit</label>
                 <select
@@ -232,11 +285,72 @@ const Home = () => {
                 </select>
               </div>
             </div>
+            <div className="col-md-4">
+              <div
+                className="form-group"
+                style={{ display: "flex", marginTop: "30px" }}
+              >
+                <label
+                  htmlFor="grainDirection"
+                  style={{
+                    display: "block",
+                    marginRight: "10px",
+                    marginTop: "5px",
+                  }}
+                >
+                  Consider Grain Direction:
+                </label>
+                <label className="switch">
+                  <input
+                    type="checkbox"
+                    id="grainDirection"
+                    name="grainDirection"
+                    onChange={(e) =>
+                      setConsiderGrainDirection(e.target.checked)
+                    }
+                  />
+                  <span className="slider"></span>
+                </label>
+              </div>
+            </div>
           </div>
           <div className="row border bg-light pt-4">
-            <div className="col-md-6">
-              <div className="form-group">
-                <label htmlFor="panelLabels">Labels on Panels:</label>
+            <div className="col-md-4">
+              <div className="form-group" style={{ display: "flex" }}>
+                <label
+                  htmlFor="addMaterialToSheets"
+                  style={{
+                    display: "block",
+                    marginRight: "10px",
+                    marginTop: "5px",
+                  }}
+                >
+                  Consider Material:
+                </label>
+                <label className="switch">
+                  <input
+                    type="checkbox"
+                    id="addMaterialToSheets"
+                    name="addMaterialToSheets"
+                    onChange={(e) => setAddMaterialToSheets(e.target.checked)}
+                  />
+                  <span className="slider"></span>
+                </label>
+              </div>
+            </div>
+
+            <div className="col-md-4">
+              <div className="form-group" style={{ display: "flex" }}>
+                <label
+                  htmlFor="panelLabels"
+                  style={{
+                    display: "block",
+                    marginRight: "10px",
+                    marginTop: "5px",
+                  }}
+                >
+                  Labels on Panels:
+                </label>
                 <label className="switch">
                   <input
                     type="checkbox"
@@ -249,9 +363,16 @@ const Home = () => {
               </div>
             </div>
 
-            <div className="col-md-6">
-              <div className="form-group">
-                <label htmlFor="singleSheet">
+            <div className="col-md-4">
+              <div className="form-group" style={{ display: "flex" }}>
+                <label
+                  htmlFor="singleSheet"
+                  style={{
+                    display: "block",
+                    marginRight: "10px",
+                    marginTop: "5px",
+                  }}
+                >
                   Use Only One Sheet from Stock:
                 </label>
                 <label className="switch">
