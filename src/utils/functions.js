@@ -12,6 +12,16 @@ function generateRandomString(length) {
   return result;
 }
 
+// Function to generate a random color in hexadecimal format
+function getRandomColor() {
+  const r = Math.floor(Math.random() * 128) + 128;
+  const g = Math.floor(Math.random() * 128) + 128;
+  const b = Math.floor(Math.random() * 128) + 128;
+
+  const color = `rgb(${r},${g},${b})`;
+  return color;
+}
+
 export function displayPanelAndSheetInfo(
   sheetTable,
   panelTable,
@@ -23,16 +33,6 @@ export function displayPanelAndSheetInfo(
   let sheetInfo = "Sheet Information:<br>";
   let detailInfo = "Detail Information:<br>-------<br>";
 
-  // Function to generate a random color in hexadecimal format
-  function getRandomColor() {
-    const r = Math.floor(Math.random() * 128) + 128;
-    const g = Math.floor(Math.random() * 128) + 128;
-    const b = Math.floor(Math.random() * 128) + 128;
-
-    const color = `rgb(${r},${g},${b})`;
-    return color;
-  }
-
   // Assuming panelRows is fetched or declared somewhere in your code
   // let panelRows = /* ... */;
   const panelData = [];
@@ -40,7 +40,7 @@ export function displayPanelAndSheetInfo(
 
   panelTable.forEach((row, index) => {
     if (index + 1 !== 0) {
-      const name = row.label;
+      const name = row.label === "" ? generateRandomString(5) : row.label;
       if (!panelGroupColors[name]) {
         panelGroupColors[name] = getRandomColor();
       }
@@ -237,11 +237,13 @@ export function displayPanelAndSheetInfo(
   });
   let totalCutDetails = 0;
   let totalCutLength = 0;
-
+  let notPlacedPanel = [];
   panelData.forEach((panel) => {
     if (panel.placed === true) {
       totalCuts++;
       panellenght += parseInt(panel.length);
+    } else {
+      notPlacedPanel.push(panel);
     }
     totalCutDetails += totalCuts;
     totalCutLength += panellenght;
@@ -253,6 +255,7 @@ export function displayPanelAndSheetInfo(
 
   // full result -------------------------
   //document.getElementById('result').innerHTML = panelInfo + '<br>' + sheetInfo + '<br>' + detailInfo;
+  console.log({ panelInfo });
 
   // -----------------------------------------------------------------
 
@@ -281,7 +284,7 @@ export function displayPanelAndSheetInfo(
   //---------------------------------------------------------------------
 
   const panels = [];
-  const getGlobalSheetStatistics = [];
+  const sheetStatistics = [];
 
   const panelRegex =
     /Panel \((.*?)\) ==> (\d+) x (\d+) \((R|NR)\) is placed on Sheet \((.*?)\) (\d+) x (\d+)\. <br> Area used: (\d+), Remaining area: (\d+), Remaining length: (\d+), Remaining width: (\d+), Placed: (true|false), X: (\d+), Y: (\d+), panelGroup: \((.*?)\), sheetGroup: \((.*?)\), col: \((.*?)\)<br>-----------<br>/g;
@@ -326,7 +329,7 @@ export function displayPanelAndSheetInfo(
   // the 'panelsBySheet' object correctly populated
   //------------------------------------
   let svgString = "";
-  let xx = "";
+  let log = "";
 
   const containerWidth = sheetTable[0].width; // Define the container width in pixels
   const containerHeight = sheetTable[0].length; // Define the container height in pixels
@@ -338,7 +341,8 @@ export function displayPanelAndSheetInfo(
 
   const scaleX = (containerWidth - 2 * margin) / maxSheetWidth;
   const scaleY = (containerHeight - 2 * margin) / maxSheetHeight;
-  const scale = Math.min(scaleX, scaleY);
+  const scale = 1;
+  // const scale = Math.min(scaleX, scaleY);
 
   // Function to generate a unique key for a sheet based on its panels
   function generateSheetKey(sheetPanels) {
@@ -367,14 +371,22 @@ export function displayPanelAndSheetInfo(
   let totalAreaUsed = 0;
   let totalRemainingArea = 0;
   const sheetDetails = [];
+  let totalSheetUsed = 0;
+  let count_cut = 0;
 
-  uniqueSheets.forEach((sheetData, sheetKey) => {
+  uniqueSheets.forEach((sheetData) => {
     const sheetName = sheetData.panels[0].sheetGroup;
     const sheetPanels = sheetData.panels;
     const sheetCount = sheetData.count;
 
     const sheetWidth = parseFloat(sheetPanels[0].sheetWidth);
     const sheetHeight = parseFloat(sheetPanels[0].sheetLength);
+
+    // Create a 2D array to represent the sheet
+    const sheetArray = Array.from(
+      { length: Math.ceil(sheetHeight * scale) },
+      () => Array(Math.ceil(sheetWidth * scale)).fill(0)
+    );
 
     // Get the last panel for the current sheet
     const lastPanel = sheetPanels[sheetPanels.length - 1];
@@ -391,10 +403,11 @@ export function displayPanelAndSheetInfo(
     sheetDetails.push(
       `(${sheetWidth}${unit} x ${sheetHeight}${unit}) X${sheetCount}`
     );
+    totalSheetUsed += sheetCount;
 
     // Container SVG with light yellow background
-    svgString += `<svg width="${parseInt(containerWidth) + 70}" height="${
-      parseInt(containerHeight) + 20
+    svgString += `<svg width="${parseInt(sheetWidth) + 100}" height="${
+      parseInt(sheetHeight) + 100
     }" xmlns="http://www.w3.org/2000/svg" style="background-color: lightyellow; margin: ${margin}px; position: relative;">`;
 
     // Inner sheet SVG with white background, without border
@@ -407,61 +420,107 @@ export function displayPanelAndSheetInfo(
       sheetHeight * scale
     }" fill="none" stroke="black" stroke-width="1"/>`;
 
-    sheetPanels.forEach((panel) => {
-      const panelLabels = document.getElementById("panelLabels").checked
-        ? "on"
-        : "off";
+    // Track the bounds of the used area
+    let usedBounds = { maxX: 0, maxY: 0 };
 
-      const scaledX = panel.x * scale;
-      const scaledY = panel.y * scale;
-      const scaledWidth = panel.width * scale;
-      const scaledLength = panel.length * scale;
+    // Add panels to the SVG, mark used areas in the array, and track the unused spaces
+    sheetPanels.forEach((panel, index) => {
+      const scaledX = Math.floor(panel.x * scale);
+      const scaledY = Math.floor(panel.y * scale);
+      const scaledWidth = Math.floor(panel.width * scale);
+      const scaledLength = Math.floor(panel.length * scale);
 
-      if (panelLabels === "on") {
+      // Mark used areas in the sheetArray
+      for (let y = scaledY; y < scaledY + scaledLength; y++) {
+        for (let x = scaledX; x < scaledX + scaledWidth; x++) {
+          if (y < sheetArray.length && x < sheetArray[0].length) {
+            sheetArray[y][x] = 1; // Mark as used
+          }
+        }
+      }
+
+      // Update the used bounds
+      usedBounds.maxX = Math.max(usedBounds.maxX, scaledX + scaledWidth);
+      usedBounds.maxY = Math.max(usedBounds.maxY, scaledY + scaledLength);
+
+      // Draw the panel
+      if (panelLabel) {
         svgString += `<rect x="${scaledX}" y="${scaledY}" width="${scaledWidth}" height="${scaledLength}" fill="${
           panel.panelColor
-        }" stroke="black" stroke-width="${1}" class="panel-rect">
-        <title>${panel.panelName}: ${panel.length} x ${
+        }" stroke="black" stroke-width="1" class="panel-rect">
+          <title>${panel.panelName}: ${panel.length} x ${
           panel.width
         }, Rotation: ${
           panel.rotation
         }, Panel (XY): ${scaledX} ${scaledY}</title>
-      </rect>
-      <text x="${scaledX + scaledWidth / 2}" y="${
+        </rect>
+        <text x="${scaledX + scaledWidth / 2}" y="${
           scaledY + 25
         }" text-anchor="middle" font-size="10" fill="black">${
           panel.panelName
         }</text>
-      <text x="${scaledX + 10}" y="${
+        <text x="${scaledX + 10}" y="${
           scaledY + scaledLength / 2
         }" text-anchor="left" font-size="8" fill="black" transform="rotate(-90, ${
           scaledX + 10
         }, ${scaledY + scaledLength / 2})">${panel.length}</text>
-      <text x="${scaledX + scaledWidth / 2}" y="${
+        <text x="${scaledX + scaledWidth / 2}" y="${
           scaledY + 10
         }" text-anchor="middle" font-size="8" fill="black">${
           panel.width
         }</text>`;
       } else {
-        svgString += `    
-        <rect x="${scaledX}" y="${scaledY}" width="${scaledWidth}" height="${scaledLength}" fill="${
-          panel.panelColor
-        }" vector-effect="non-scaling-stroke" stroke="black" stroke-width="${1}" 
-        class="panel-rect" >
-        <title>${panel.panelName}: ${panel.length} x ${
-          panel.width
-        }, Rotation: ${
-          panel.rotation
-        }, Panel (XY): ${scaledX} ${scaledY}</title>
-      </rect>
-     `;
+        svgString += `<rect x="${scaledX}" y="${scaledY}" width="${scaledWidth}" height="${scaledLength}" fill="${panel.panelColor}" vector-effect="non-scaling-stroke" stroke="black" stroke-width="1" class="panel-rect">
+          <title>${panel.panelName}: ${panel.length} x ${panel.width}, Rotation: ${panel.rotation}, Panel (XY): ${scaledX} ${scaledY}</title>
+        </rect>`;
       }
-    }); //---here..... stroke-width in 'else' and text in 'if'-----
+    }); // End of sheetPanels.forEach
+
+    // Find and draw unused spaces
+    for (let y = 0; y < sheetArray.length; y++) {
+      for (let x = 0; x < sheetArray[0].length; x++) {
+        if (sheetArray[y][x] === 0) {
+          // Unused area found
+          let width = 1;
+          let height = 1;
+
+          // Extend the width
+          while (
+            x + width < sheetArray[0].length &&
+            sheetArray[y][x + width] === 0
+          ) {
+            width++;
+          }
+
+          // Extend the height
+          while (
+            y + height < sheetArray.length &&
+            sheetArray[y + height].slice(x, x + width).every((val) => val === 0)
+          ) {
+            height++;
+          }
+
+          // Draw the unused area
+          count_cut++;
+          svgString += `<rect x="${x}" y="${y}" width="${width}" height="${height}" fill="lightgrey" opacity="0.5" stroke="blue" stroke-width="1">
+            <title>Unused Area ${count_cut}: (W:${width / scale} x H:${
+            height / scale
+          }) x="${x}" y="${y}"</title>
+          </rect>`;
+
+          // Mark this area as used to avoid redrawing
+          for (let i = 0; i < height; i++) {
+            for (let j = 0; j < width; j++) {
+              sheetArray[y + i][x + j] = 1; // Mark as used
+            }
+          }
+        }
+      }
+    }
 
     svgString += `</svg>`; // Closing sheet SVG
 
     // Add sheet length and width labels outside the sheet border
-
     svgString += `<text x="${sheetWidth * scale + margin + 30}" y="${
       sheetHeight / 2 + margin
     }" fill="red" font-size="14" transform="rotate(-90, ${
@@ -496,7 +555,7 @@ export function displayPanelAndSheetInfo(
 
     const totalAreaUsedPercentage = (sheetTotalAreaUsed / sheetTotalArea) * 100;
     for (let i = 1; i <= sheetCount; i++) {
-      getGlobalSheetStatistics.push({
+      sheetStatistics.push({
         stockSheetWidth: sheetWidth,
         stockSheetHeight: sheetHeight,
         usedArea: sheetTotalAreaUsed,
@@ -506,14 +565,19 @@ export function displayPanelAndSheetInfo(
         panels: sheetData.panels.length,
       });
     }
-  });
+  }); // End of uniqueSheets.forEach
 
   // Calculate overall percentages
   const totalUsedAreaPercentage = (totalAreaUsed / totalArea) * 100;
   const totalWastedAreaPercentage = 100 - totalUsedAreaPercentage;
   const percentTotalArea = totalUsedAreaPercentage + totalWastedAreaPercentage;
 
+  //Total cut
+  totalCuts += count_cut;
+  // log += `${totalCuts} ${count_cut}`
+
   document.getElementById("svgContainer").innerHTML = svgString;
+  // document.getElementById("log").innerHTML = log;
 
   const singleSheet = document.getElementById("singleSheet").checked
     ? "on"
@@ -522,21 +586,96 @@ export function displayPanelAndSheetInfo(
   const totalData = {
     totalArea,
     percentTotalArea,
+    panelThickness,
+  };
+  const globalSheetStatistics = {
     totalAreaUsed,
     totalUsedAreaPercentage: totalUsedAreaPercentage.toFixed(2),
-    totalRemainingArea,
-    totalWastedAreaPercentage: totalWastedAreaPercentage.toFixed(2),
-    totalCutDetails,
+    totalCutLength,
     totalCuts,
     totalWastedArea: totalRemainingArea,
-    totalCutLength,
+    totalWastedAreaPercentage: totalWastedAreaPercentage.toFixed(2),
     panelThickness,
     sheetDetails,
+    notPlacedPanel,
+    totalParts: panelData.length,
+    totalSheetUsed,
   };
-
-  return { totalData, getGlobalSheetStatistics };
+  console.log({ panelData });
+  return { totalData, sheetStatistics, globalSheetStatistics };
 }
 
-// document
-//   .getElementById("panelLabels")
-//   .addEventListener("click", displayPanelAndSheetInfo);
+export function checkForErrors(
+  filteredStockSheet,
+  filteredPanelSheet,
+  panelLabel
+) {
+  const response = [];
+
+  if (filteredStockSheet.length === 0) {
+    response.push({
+      type: "error",
+      message: "Please add at least a stock sheet",
+      continue: false,
+    });
+  } else if (filteredPanelSheet.length === 0) {
+    response.push({
+      type: "error",
+      message: "Please add at least a panel",
+      continue: false,
+    });
+  }
+
+  for (let i = 0; i < filteredPanelSheet.length; i++) {
+    if (
+      filteredPanelSheet[i].selected &&
+      panelLabel &&
+      filteredPanelSheet[i].label === ""
+    ) {
+      response.push({
+        type: "warning",
+        message: `Panel row ${i} label is missing, a random panel Label will be added for you`,
+        continue: true,
+      });
+    }
+    if (
+      filteredPanelSheet[i].selected &&
+      (filteredPanelSheet[i].width === "" ||
+        filteredPanelSheet[i].length === "" ||
+        filteredPanelSheet[i].quantity === "")
+    ) {
+      response.push({
+        type: "error",
+        message: `Panel row ${i} width, length, quantity are missing, please fill them in`,
+        continue: false,
+      });
+    }
+  }
+  for (let i = 0; i < filteredStockSheet.length; i++) {
+    if (
+      filteredStockSheet[i].selected &&
+      panelLabel &&
+      filteredStockSheet[i].label === ""
+    ) {
+      response.push({
+        type: "warning",
+        message: `Sheet row ${i} label is missing, a random panel Label will be added for you`,
+        continue: true,
+      });
+    }
+    if (
+      filteredStockSheet[i].selected &&
+      (filteredStockSheet[i].width === "" ||
+        filteredStockSheet[i].length === "" ||
+        filteredStockSheet[i].quantity === "")
+    ) {
+      response.push({
+        type: "error",
+        message: `Panel row ${i} width, length, quantity are missing, please fill them in`,
+        continue: false,
+      });
+    }
+  }
+
+  return response;
+}

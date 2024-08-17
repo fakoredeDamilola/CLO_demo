@@ -1,27 +1,23 @@
 import React, { useEffect, useState } from "react";
-import { Collapse, Button, Table } from "react-bootstrap";
-import {
-  RiArrowDropDownLine,
-  RiArrowLeftDownLine,
-  RiArrowRightDownLine,
-} from "react-icons/ri";
+import { Table } from "react-bootstrap";
+import { RiArrowDropDownLine } from "react-icons/ri";
 import { FaChevronLeft, FaChevronRight } from "react-icons/fa";
 
-const SheetTable = ({ globalStatistics }) => {
+const SheetTable = ({ sheetStatistics }) => {
   const [open, setOpen] = useState(false);
   const [totalSheet, setTotalSheet] = useState(0);
   const [currentSheetDisplay, setCurrentSheetDisplay] = useState(1);
   const [sheetDisplay, setSheetDisplay] = useState({});
 
   useEffect(() => {
-    if (globalStatistics.length) {
+    if (sheetStatistics.length) {
       setOpen(true);
-      const sheet = globalStatistics[currentSheetDisplay - 1];
+      const sheet = sheetStatistics[currentSheetDisplay - 1];
       setSheetDisplay(sheet);
-      setTotalSheet(globalStatistics.length);
+      setTotalSheet(sheetStatistics.length);
       console.log({ sheet });
     }
-  }, [globalStatistics, currentSheetDisplay]);
+  }, [sheetStatistics, currentSheetDisplay]);
 
   const selectNextSheet = (value) => {
     if (

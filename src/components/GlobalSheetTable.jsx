@@ -1,17 +1,22 @@
 import React, { useState } from "react";
 import { Collapse, Button, Table } from "react-bootstrap";
 
-const CollapsibleTable = ({
-  totalUsedArea,
-  totalUsedAreaPercentage,
-  totalCutLength,
-  totalCuts,
-  sheetDetails,
-  totalWastedArea,
-  totalWastedAreaPercentage,
-  panelThickness,
-}) => {
+const GlobalSheetTable = ({ globalSheetStatistics }) => {
   const [open, setOpen] = useState(false);
+
+  const {
+    totalAreaUsed,
+    totalUsedAreaPercentage,
+    totalCutLength,
+    totalCuts,
+    sheetDetails,
+    totalWastedArea,
+    totalWastedAreaPercentage,
+    panelThickness,
+    notPlacedPanel,
+    totalParts,
+    totalSheetUsed,
+  } = globalSheetStatistics;
 
   return (
     <div>
@@ -26,13 +31,11 @@ const CollapsibleTable = ({
       <Collapse in={open}>
         <div id="example-collapse-text">
           <Table striped bordered hover width="50%">
-            {/* <thead>
-              <tr>
-                <th>Column 1</th>
-                <th>Column 2</th>
-              </tr>
-            </thead> */}
             <tbody>
+              <tr>
+                <td>Total Used Stock Sheets</td>
+                <td>{totalSheetUsed}</td>
+              </tr>
               <tr>
                 <td>Used Stock Sheets</td>
                 <td>{sheetDetails.join(", ")}</td>
@@ -40,7 +43,7 @@ const CollapsibleTable = ({
               <tr>
                 <td>Total Used Area</td>
                 <td>
-                  {totalUsedArea} / {totalUsedAreaPercentage} %
+                  {totalAreaUsed} / {totalUsedAreaPercentage} %
                 </td>
               </tr>
               <tr>
@@ -58,10 +61,17 @@ const CollapsibleTable = ({
                 <td>{totalCutLength}</td>
               </tr>
               <tr>
+                <td>Not Placed Panels</td>
+                <td>{notPlacedPanel.length}</td>
+              </tr>
+              <tr>
                 <td>Cut / Blade / Kerf Thickness</td>
                 <td>{panelThickness}</td>
               </tr>
-              {/* Add more rows as needed */}
+              <tr>
+                <td>Total Parts</td>
+                <td>{totalParts}</td>
+              </tr>
             </tbody>
           </Table>
         </div>
@@ -70,4 +80,4 @@ const CollapsibleTable = ({
   );
 };
 
-export default CollapsibleTable;
+export default GlobalSheetTable;

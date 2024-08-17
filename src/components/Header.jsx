@@ -13,7 +13,7 @@ import logoIcon from "../assets/icons/grids.svg";
 
 const Header = ({ optimizeData }) => {
   return (
-    <header>
+    <header style={{ position: "fixed", width: "100%", zIndex: 999 }}>
       <Navbar bg="dark" variant="dark" expand="lg">
         <Container>
           <Navbar.Brand href="#">

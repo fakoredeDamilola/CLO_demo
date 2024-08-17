@@ -3,11 +3,12 @@ import Panelsheet from "../components/Panelsheet";
 import Stocksheet from "../components/Stocksheet";
 import { read, utils } from "xlsx";
 import "../home.css";
-import { displayPanelAndSheetInfo } from "../utils/functions";
-import CollapsibleTable from "../components/CollapsibleTable";
+import { checkForErrors, displayPanelAndSheetInfo } from "../utils/functions";
+import GlobalSheetTable from "../components/GlobalSheetTable";
 import Header from "../components/Header";
 import Spinner from "../components/Spinner";
 import SheetTable from "../components/SheetTable";
+import ErrorModal from "../components/ErrorModal";
 
 const Home = () => {
   const unitOptions = [
@@ -48,24 +49,18 @@ const Home = () => {
   ]);
   const [unit, setUnit] = useState("in");
   const [optimizationCompleted, setOptimizationCompleted] = useState(false);
-  const [sheetDetails, setSheetDetails] = useState([]);
   const [panelThickness, setPanelThickness] = useState("0");
   const [panelLabel, setPanelLabel] = useState(true);
-  const [totalArea, setTotalArea] = useState("");
-  const [percentTotalArea, setPercentTotalArea] = useState("");
-  const [totalUsedArea, setTotalUsedArea] = useState("");
-  const [totalUsedAreaPercentage, setTotalUsedAreaPercentage] = useState("");
-  const [totalWastedArea, setTotalWastedArea] = useState("");
-  const [totalWastedAreaPercentage, setTotalWastedAreaPercentage] =
-    useState("");
+  const [errors, setErrors] = useState([]);
+  const [showErrorModal, setShowErrorModal] = useState(false);
   const [changeIntialUnit, setChangeIntialUnit] = useState(false);
-  const [totalCuts, setTotalCuts] = useState("");
-  const [globalStatistics, setGlobalStatistics] = useState([]);
+  const [sheetStatistics, setSheetStatistics] = useState([]);
 
   const [selectedPanelFile, setSelectedPanelFile] = useState(null);
   const [selectedSheetFile, setSelectedSheetFile] = useState(null);
   const [addMaterialToSheets, setAddMaterialToSheets] = useState(false);
   const [considerGrainDirection, setConsiderGrainDirection] = useState(false);
+  const [globalSheetStatistics, setGlobalSheetStatistics] = useState({});
 
   useEffect(() => {
     setChangeIntialUnit(false);
@@ -147,15 +142,33 @@ const Home = () => {
     setUnit(event.target.value);
   };
 
+  const handleCloseModal = (cont = false) => {
+    setShowErrorModal(false);
+    if (cont) {
+      optimizeDataAndResult();
+    }
+  };
+
   function optimizeData() {
-    // getActualValueBasedOnUnit(unit);
-    setLoading(true);
     setOptimizationCompleted(false);
 
+    const errors = checkForErrors(stockSheetRows, panelRows, panelLabel);
+    setErrors(errors);
+    if (errors.length === 0) {
+      setLoading(true);
+      optimizeDataAndResult();
+    } else {
+      setShowErrorModal(true);
+    }
+  }
+
+  const filterUnusedData = (data) => {
+    return data.filter((data) => data.selected);
+  };
+
+  const optimizeDataAndResult = () => {
     const filteredStockSheet = filterUnusedData(stockSheetRows);
     const filteredPanelSheet = filterUnusedData(panelRows);
-
-    console.log({ filteredStockSheet, filteredPanelSheet });
 
     const response = displayPanelAndSheetInfo(
       filteredStockSheet,
@@ -166,26 +179,20 @@ const Home = () => {
         : parseInt(panelThickness),
       unit
     );
-    const { totalData: results, getGlobalSheetStatistics } = response;
-    setGlobalStatistics(getGlobalSheetStatistics);
+    const {
+      totalData: results,
+      sheetStatistics,
+      globalSheetStatistics,
+    } = response;
+    console.log({ globalSheetStatistics });
+
+    setSheetStatistics(sheetStatistics);
     setOptimizationCompleted(true);
-    setTotalCutLength(results.totalCutLength);
+    setGlobalSheetStatistics(globalSheetStatistics);
     setUsedStockSheets(results.usedStockSheets);
-    setTotalArea(results.totalArea);
-    setPercentTotalArea(results.percentTotalArea);
-    setTotalUsedArea(results.totalAreaUsed);
-    setTotalUsedAreaPercentage(results.totalUsedAreaPercentage);
-    setTotalWastedArea(results.totalWastedArea);
-    setTotalWastedAreaPercentage(results.totalWastedAreaPercentage);
-    setTotalCuts(results.totalCuts);
-    setSheetDetails(results.sheetDetails);
     setPanelThickness(results.panelThickness);
     console.log({ results });
     setLoading(false);
-  }
-
-  const filterUnusedData = (data) => {
-    return data.filter((data) => data.selected);
   };
 
   function getActualValueBasedOnUnit(unit) {
@@ -420,19 +427,12 @@ const Home = () => {
                     </div>
                   </div>
                   <div className="mb-5">
-                    <CollapsibleTable
-                      totalUsedArea={totalUsedArea}
-                      totalUsedAreaPercentage={totalUsedAreaPercentage}
-                      totalCutLength={totalCutLength}
-                      totalCuts={totalCuts}
-                      sheetDetails={sheetDetails}
-                      totalWastedArea={totalWastedArea}
-                      totalWastedAreaPercentage={totalWastedAreaPercentage}
-                      panelThickness={panelThickness}
+                    <GlobalSheetTable
+                      globalSheetStatistics={globalSheetStatistics}
                     />
                   </div>
                   <div className="mb-5">
-                    <SheetTable globalStatistics={globalStatistics} />
+                    <SheetTable sheetStatistics={sheetStatistics} />
                   </div>
                 </div>
               )}
@@ -441,6 +441,11 @@ const Home = () => {
           </div>
         </div>
       )}
+      <ErrorModal
+        show={showErrorModal}
+        onClose={handleCloseModal}
+        messages={errors}
+      />
     </div>
   );
 };
