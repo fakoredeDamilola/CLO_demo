@@ -13,7 +13,6 @@ const GlobalSheetTable = ({ globalSheetStatistics }) => {
     totalWastedArea,
     totalWastedAreaPercentage,
     panelThickness,
-    notPlacedPanel,
     totalParts,
     totalSheetUsed,
   } = globalSheetStatistics;
@@ -60,10 +59,7 @@ const GlobalSheetTable = ({ globalSheetStatistics }) => {
                 <td>Total Cut Length</td>
                 <td>{totalCutLength}</td>
               </tr>
-              <tr>
-                <td>Not Placed Panels</td>
-                <td>{notPlacedPanel.length}</td>
-              </tr>
+
               <tr>
                 <td>Cut / Blade / Kerf Thickness</td>
                 <td>{panelThickness}</td>

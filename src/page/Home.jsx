@@ -9,6 +9,7 @@ import Header from "../components/Header";
 import Spinner from "../components/Spinner";
 import SheetTable from "../components/SheetTable";
 import ErrorModal from "../components/ErrorModal";
+import NotPlacedPanelTable from "../components/NotPlacedPanelTable";
 
 const Home = () => {
   const unitOptions = [
@@ -61,6 +62,7 @@ const Home = () => {
   const [addMaterialToSheets, setAddMaterialToSheets] = useState(false);
   const [considerGrainDirection, setConsiderGrainDirection] = useState(false);
   const [globalSheetStatistics, setGlobalSheetStatistics] = useState({});
+  const [notPlacePanels, setNotPlacePanels] = useState([]);
 
   useEffect(() => {
     setChangeIntialUnit(false);
@@ -183,12 +185,15 @@ const Home = () => {
       totalData: results,
       sheetStatistics,
       globalSheetStatistics,
+      notPlacedPanelArray,
     } = response;
     console.log({ globalSheetStatistics });
 
     setSheetStatistics(sheetStatistics);
     setOptimizationCompleted(true);
     setGlobalSheetStatistics(globalSheetStatistics);
+
+    setNotPlacePanels(notPlacedPanelArray);
     setUsedStockSheets(results.usedStockSheets);
     setPanelThickness(results.panelThickness);
     console.log({ results });
@@ -431,6 +436,13 @@ const Home = () => {
                       globalSheetStatistics={globalSheetStatistics}
                     />
                   </div>
+                  {notPlacePanels.length > 0 && (
+                    <div className="mb-5">
+                      <NotPlacedPanelTable
+                        notPlacedPanelArray={notPlacePanels}
+                      />
+                    </div>
+                  )}
                   <div className="mb-5">
                     <SheetTable sheetStatistics={sheetStatistics} />
                   </div>

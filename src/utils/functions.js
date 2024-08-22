@@ -29,6 +29,7 @@ export function displayPanelAndSheetInfo(
   panelThickness,
   unit
 ) {
+  console.log({ sheetTable, panelTable });
   let panelInfo = "Panel Information:<br>";
   let sheetInfo = "Sheet Information:<br>";
   let detailInfo = "Detail Information:<br>-------<br>";
@@ -583,6 +584,18 @@ export function displayPanelAndSheetInfo(
     ? "on"
     : "off";
 
+  let notPlacedPanelArray = [];
+
+  console.log({ notPlacedPanel });
+
+  if (notPlacedPanel.length > 0) {
+    notPlacedPanelArray = computeNotPlacedPanelToGroups(notPlacedPanel);
+
+    console.log({ notPlacedPanelArray });
+  } else {
+    console.log("Placed");
+  }
+
   const totalData = {
     totalArea,
     percentTotalArea,
@@ -597,12 +610,16 @@ export function displayPanelAndSheetInfo(
     totalWastedAreaPercentage: totalWastedAreaPercentage.toFixed(2),
     panelThickness,
     sheetDetails,
-    notPlacedPanel,
-    totalParts: panelData.length,
+    // notPlacedPanel: notPlacedPanel.length,
+    totalParts: panelData.length - notPlacedPanel.length,
     totalSheetUsed,
   };
-  console.log({ panelData });
-  return { totalData, sheetStatistics, globalSheetStatistics };
+  return {
+    totalData,
+    sheetStatistics,
+    globalSheetStatistics,
+    notPlacedPanelArray,
+  };
 }
 
 export function checkForErrors(
@@ -678,4 +695,27 @@ export function checkForErrors(
   }
 
   return response;
+}
+
+function computeNotPlacedPanelToGroups(notPlacedPanel) {
+  const notPlacedPanelArray = notPlacedPanel.reduce((acc, current) => {
+    console.log({ current, acc });
+    const findGroup = acc.findIndex(
+      (group) => group.groupName === current.panelGroup
+    );
+    console.log({ findGroup });
+    if (findGroup >= 0) {
+      acc[findGroup].panelCount++;
+    } else {
+      const newPanelGroup = {
+        groupName: current.panelGroup,
+        panelCount: 1,
+        panelWidth: current.width,
+        panelLength: current.length,
+      };
+      acc.push(newPanelGroup);
+    }
+    return acc;
+  }, []);
+  return notPlacedPanelArray;
 }
