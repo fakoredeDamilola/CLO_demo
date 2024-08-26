@@ -51,7 +51,6 @@ const Home = () => {
   const [unit, setUnit] = useState("in");
   const [optimizationCompleted, setOptimizationCompleted] = useState(false);
   const [panelThickness, setPanelThickness] = useState("0");
-  const [panelLabel, setPanelLabel] = useState(true);
   const [errors, setErrors] = useState([]);
   const [showErrorModal, setShowErrorModal] = useState(false);
   const [changeIntialUnit, setChangeIntialUnit] = useState(false);
@@ -59,17 +58,22 @@ const Home = () => {
 
   const [selectedPanelFile, setSelectedPanelFile] = useState(null);
   const [selectedSheetFile, setSelectedSheetFile] = useState(null);
-  const [addMaterialToSheets, setAddMaterialToSheets] = useState(false);
-  const [considerGrainDirection, setConsiderGrainDirection] = useState(false);
+  const [additionalFeatures, setAdditionalFeatures] = useState({
+    considerGrainDirection: false,
+    addMaterialToSheets: false,
+    panelLabel: false,
+  });
   const [globalSheetStatistics, setGlobalSheetStatistics] = useState({});
   const [notPlacePanels, setNotPlacePanels] = useState([]);
+
+  const { considerGrainDirection, addMaterialToSheets, panelLabel } =
+    additionalFeatures;
 
   useEffect(() => {
     setChangeIntialUnit(false);
   }, []);
 
   const handleChange = (e, type) => {
-    console.log(e.target, type, e.target.name);
     const file = e.target.files[0];
     if (type === "panels") {
       setSelectedPanelFile(file);
@@ -82,10 +86,8 @@ const Home = () => {
     const selectedFile =
       id === "panels" ? selectedPanelFile : selectedSheetFile;
     const dataRows = id === "panels" ? panelRows : stockSheetRows;
-    console.log({ dataRows, id });
-    if (selectedFile) {
-      console.log("Uploading file:", selectedFile);
 
+    if (selectedFile) {
       if (
         selectedFile.name.endsWith(".xls") ||
         selectedFile.name.endsWith(".xlsx")
@@ -175,7 +177,7 @@ const Home = () => {
     const response = displayPanelAndSheetInfo(
       filteredStockSheet,
       filteredPanelSheet,
-      panelLabel,
+      additionalFeatures,
       parseInt(panelThickness) <= -1 || panelThickness === ""
         ? 0
         : parseInt(panelThickness),
@@ -187,7 +189,6 @@ const Home = () => {
       globalSheetStatistics,
       notPlacedPanelArray,
     } = response;
-    console.log({ globalSheetStatistics });
 
     setSheetStatistics(sheetStatistics);
     setOptimizationCompleted(true);
@@ -196,16 +197,12 @@ const Home = () => {
     setNotPlacePanels(notPlacedPanelArray);
     setUsedStockSheets(results.usedStockSheets);
     setPanelThickness(results.panelThickness);
-    console.log({ results });
     setLoading(false);
   };
 
   function getActualValueBasedOnUnit(unit) {
-    console.log("mdkeoeo demkdkkdjlkm doldklkdop");
     const DPIValues = getDPI();
-    console.log({ DPIValues });
     if (!changeIntialUnit) {
-      console.log({ unit, changeIntialUnit });
       // whatever unit put there is the data we are going with
       if (unit === "in") {
         const newStockValues = stockSheetRows.map((data) => {
@@ -214,7 +211,6 @@ const Home = () => {
             width: parseInt(data.width) * DPIValues,
           };
         });
-        console.log({ newStockValues });
       }
     }
   }
@@ -331,7 +327,10 @@ const Home = () => {
                     id="grainDirection"
                     name="grainDirection"
                     onChange={(e) =>
-                      setConsiderGrainDirection(e.target.checked)
+                      setAdditionalFeatures((prev) => ({
+                        ...prev,
+                        considerGrainDirection: e.target.checked,
+                      }))
                     }
                   />
                   <span className="slider"></span>
@@ -357,7 +356,12 @@ const Home = () => {
                     type="checkbox"
                     id="addMaterialToSheets"
                     name="addMaterialToSheets"
-                    onChange={(e) => setAddMaterialToSheets(e.target.checked)}
+                    onChange={(e) =>
+                      setAdditionalFeatures((prev) => ({
+                        ...prev,
+                        addMaterialToSheets: e.target.checked,
+                      }))
+                    }
                   />
                   <span className="slider"></span>
                 </label>
@@ -367,7 +371,7 @@ const Home = () => {
             <div className="col-md-4">
               <div className="form-group" style={{ display: "flex" }}>
                 <label
-                  htmlFor="panelLabels"
+                  htmlFor="panelLabel"
                   style={{
                     display: "block",
                     marginRight: "10px",
@@ -379,9 +383,14 @@ const Home = () => {
                 <label className="switch">
                   <input
                     type="checkbox"
-                    id="panelLabels"
-                    name="panelLabels"
-                    onChange={(e) => setPanelLabel(e.target.checked)}
+                    id="panelLabel"
+                    name="panelLabel"
+                    onChange={(e) =>
+                      setAdditionalFeatures((prev) => ({
+                        ...prev,
+                        panelLabel: e.target.checked,
+                      }))
+                    }
                   />
                   <span className="slider"></span>
                 </label>

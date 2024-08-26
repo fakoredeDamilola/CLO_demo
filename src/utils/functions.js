@@ -25,11 +25,10 @@ function getRandomColor() {
 export function displayPanelAndSheetInfo(
   sheetTable,
   panelTable,
-  panelLabel,
+  additionalFeatures,
   panelThickness,
   unit
 ) {
-  console.log({ sheetTable, panelTable });
   let panelInfo = "Panel Information:<br>";
   let sheetInfo = "Sheet Information:<br>";
   let detailInfo = "Detail Information:<br>-------<br>";
@@ -38,6 +37,10 @@ export function displayPanelAndSheetInfo(
   // let panelRows = /* ... */;
   const panelData = [];
   const panelGroupColors = {};
+  const { considerGrainDirection, addMaterialToSheets, panelLabel } =
+    additionalFeatures;
+
+  console.log({ considerGrainDirection, addMaterialToSheets, panelLabel });
 
   panelTable.forEach((row, index) => {
     if (index + 1 !== 0) {
@@ -254,12 +257,6 @@ export function displayPanelAndSheetInfo(
     }, Width: ${panel.width}, Placed: ${panel.placed ? "true" : "false"}<br>`;
   });
 
-  // full result -------------------------
-  //document.getElementById('result').innerHTML = panelInfo + '<br>' + sheetInfo + '<br>' + detailInfo;
-  console.log({ panelInfo });
-
-  // -----------------------------------------------------------------
-
   // Calculate total area required for sheets
   let totalSheetWidth = 0;
   let totalSheetLength = 0;
@@ -330,18 +327,9 @@ export function displayPanelAndSheetInfo(
   // the 'panelsBySheet' object correctly populated
   //------------------------------------
   let svgString = "";
-  let log = "";
 
-  const containerWidth = sheetTable[0].width; // Define the container width in pixels
-  const containerHeight = sheetTable[0].length; // Define the container height in pixels
   const margin = 25;
 
-  // Determine the scaling factor based on the container size
-  const maxSheetWidth = Math.max(...sheetData.map((sheet) => sheet.width));
-  const maxSheetHeight = Math.max(...sheetData.map((sheet) => sheet.length));
-
-  const scaleX = (containerWidth - 2 * margin) / maxSheetWidth;
-  const scaleY = (containerHeight - 2 * margin) / maxSheetHeight;
   const scale = 1;
   // const scale = Math.min(scaleX, scaleY);
 
@@ -366,8 +354,7 @@ export function displayPanelAndSheetInfo(
       uniqueSheets.set(sheetKey, { panels: sheetPanels, count: 1 });
     }
   }
-  // console.log({ uniqueSheets });
-  // Variables to hold the total values for all sheets
+
   let totalArea = 0;
   let totalAreaUsed = 0;
   let totalRemainingArea = 0;
@@ -404,6 +391,13 @@ export function displayPanelAndSheetInfo(
     sheetDetails.push(
       `(${sheetWidth}${unit} x ${sheetHeight}${unit}) X${sheetCount}`
     );
+
+    // sheetDetails.push({
+    //   sheetName,
+    //   sheetWidth,
+    //   sheetHeight,
+    //   sheetCount,
+    // });
     totalSheetUsed += sheetCount;
 
     // Container SVG with light yellow background
@@ -586,14 +580,8 @@ export function displayPanelAndSheetInfo(
 
   let notPlacedPanelArray = [];
 
-  console.log({ notPlacedPanel });
-
   if (notPlacedPanel.length > 0) {
     notPlacedPanelArray = computeNotPlacedPanelToGroups(notPlacedPanel);
-
-    console.log({ notPlacedPanelArray });
-  } else {
-    console.log("Placed");
   }
 
   const totalData = {
@@ -699,11 +687,9 @@ export function checkForErrors(
 
 function computeNotPlacedPanelToGroups(notPlacedPanel) {
   const notPlacedPanelArray = notPlacedPanel.reduce((acc, current) => {
-    console.log({ current, acc });
     const findGroup = acc.findIndex(
       (group) => group.groupName === current.panelGroup
     );
-    console.log({ findGroup });
     if (findGroup >= 0) {
       acc[findGroup].panelCount++;
     } else {
