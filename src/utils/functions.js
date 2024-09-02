@@ -33,14 +33,16 @@ export function displayPanelAndSheetInfo(
   let sheetInfo = "Sheet Information:<br>";
   let detailInfo = "Detail Information:<br>-------<br>";
 
-  // Assuming panelRows is fetched or declared somewhere in your code
   // let panelRows = /* ... */;
   const panelData = [];
   const panelGroupColors = {};
   const { considerGrainDirection, addMaterialToSheets, panelLabel } =
     additionalFeatures;
 
-  console.log({ considerGrainDirection, addMaterialToSheets, panelLabel });
+  console.clear();
+  //   console.log(sheetTable);
+  //   console.log(panelTable);
+  // console.log({ considerGrainDirection, addMaterialToSheets, panelLabel });
 
   panelTable.forEach((row, index) => {
     if (index + 1 !== 0) {
@@ -52,6 +54,9 @@ export function displayPanelAndSheetInfo(
       const length = row.length;
       const width = row.width;
       const quantity = row.quantity;
+      const grainDirection = row.grainDirection;
+      const material = row.material;
+
       for (let i = 1; i <= quantity; i++) {
         panelData.push({
           pid: `${panelData.length + 1}`,
@@ -63,6 +68,8 @@ export function displayPanelAndSheetInfo(
           placed: false,
           rotated: false,
           color: panelGroupColors[name], // Assign unique color for panelGroup
+          grainDirection,
+          material,
         });
       }
     }
@@ -84,6 +91,8 @@ export function displayPanelAndSheetInfo(
       const length = row.length;
       const width = row.width;
       const quantity = row.quantity;
+      const grainDirection = row.grainDirection;
+      const material = row.material;
 
       for (let i = 1; i <= quantity; i++) {
         sheetInfo += `sid: ${
@@ -98,14 +107,17 @@ export function displayPanelAndSheetInfo(
           width,
           qty: 1,
           placed: false,
+          grainDirection,
+          material,
         });
       }
     }
   });
+
   // Call bestFitDecreasing function after extracting panel and sheet data
 
   function bestFitDecreasing(panels, sheets) {
-    // console.clear();
+    // Sort panels by area (length * width) in descending order
     const sortedPanels = panels.sort(
       (a, b) =>
         parseInt(b.length) * parseInt(b.width) -
@@ -115,26 +127,49 @@ export function displayPanelAndSheetInfo(
     for (let i = 0; i < sheets.length; i++) {
       const sheet = sheets[i];
       if (!sheet.placed) {
-        const grid = Array(parseInt(sheet.length) + panelThickness)
+        let sheetLength = parseInt(sheet.length);
+        let sheetWidth = parseInt(sheet.width);
+
+        // Apply grain direction to sheet independently
+        if (considerGrainDirection && sheet.grainDirection === "vertical") {
+          [sheetLength, sheetWidth] = [sheetWidth, sheetLength];
+        }
+
+        const grid = Array(sheetLength + panelThickness)
           .fill()
-          .map(() => Array(parseInt(sheet.width) + panelThickness).fill(0)); //---here-----
+          .map(() => Array(sheetWidth + panelThickness).fill(0));
         let areaUsed = 0;
 
-        for (let j = 0; j < sortedPanels.length; j++) {
-          const panel = sortedPanels[j];
+        // Filter panels by material type that matches the sheet material
+        const materialSpecificPanels = sortedPanels.filter(
+          (panel) => panel.material === sheet.material
+        );
+
+        for (let j = 0; j < materialSpecificPanels.length; j++) {
+          const panel = materialSpecificPanels[j];
 
           if (!panel.placed) {
-            const panelLength = parseInt(panel.length);
-            const panelWidth = parseInt(panel.width);
+            let panelLength = parseInt(panel.length);
+            let panelWidth = parseInt(panel.width);
 
+            // Apply grain direction to panel independently
             for (let k = 0; k < 2; k++) {
+              if (
+                considerGrainDirection &&
+                panel.grainDirection === "vertical"
+              ) {
+                [panelLength, panelWidth] = [panelWidth, panelLength];
+              }
+
               const [length, width] =
                 k === 0 ? [panelLength, panelWidth] : [panelWidth, panelLength];
+
               if (k === 1) {
                 panel.rotated = true;
               } else {
                 panel.rotated = false;
               }
+
               for (
                 let row = 0;
                 row <= grid.length - length - panelThickness;
@@ -146,11 +181,10 @@ export function displayPanelAndSheetInfo(
                   col++
                 ) {
                   if (!grid[row][col]) {
-                    let canPlace = true; //---here-----
+                    let canPlace = true;
 
                     for (let r = row; r < row + length + panelThickness; r++) {
                       for (let c = col; c < col + width + panelThickness; c++) {
-                        //---here-----
                         // Ensure placement doesn't exceed sheet boundaries
                         if (
                           r >= grid.length ||
@@ -176,7 +210,6 @@ export function displayPanelAndSheetInfo(
                           c < col + width + panelThickness;
                           c++
                         ) {
-                          //---here-----
                           grid[r][c] = 1;
                         }
                       }
@@ -185,18 +218,17 @@ export function displayPanelAndSheetInfo(
                       panel.x = col; // x-coordinate
                       panel.y = row; // y-coordinate
                       areaUsed += length * width;
-                      const remainingArea =
-                        sheet.length * sheet.width - areaUsed;
-                      const remainingLength = sheet.length - row - length;
-                      const remainingWidth = sheet.width - col - width;
+                      const remainingArea = sheetLength * sheetWidth - areaUsed;
+                      const remainingLength = sheetLength - row - length;
+                      const remainingWidth = sheetWidth - col - width;
 
                       detailInfo += `Panel (${
                         panel.panel
                       }) ==> ${length} x ${width} ${
                         panel.rotated ? "(R)" : "(NR)"
-                      } is placed on Sheet (${sheet.sheet}) ${sheet.length} x ${
-                        sheet.width
-                      }. <br> Area used: ${areaUsed}, Remaining area: ${remainingArea}, Remaining length: ${remainingLength}, Remaining width: ${remainingWidth}, Placed: ${
+                      } is placed on Sheet (${
+                        sheet.sheet
+                      }) ${sheetLength} x ${sheetWidth}. <br> Area used: ${areaUsed}, Remaining area: ${remainingArea}, Remaining length: ${remainingLength}, Remaining width: ${remainingWidth}, Placed: ${
                         panel.placed ? "true" : "false"
                       }, X: ${panel.x}, Y: ${panel.y}, panelGroup: (${
                         panel.panelGroup
@@ -215,13 +247,14 @@ export function displayPanelAndSheetInfo(
           }
         }
 
-        const allPlaced = sortedPanels.every((panel) => panel.placed);
+        const allPlaced = materialSpecificPanels.every((panel) => panel.placed);
         if (allPlaced) {
           sheet.placed = true;
         }
       }
     }
   }
+
   bestFitDecreasing(panelData, sheetData);
 
   let totalCuts = 0; //total cut panel

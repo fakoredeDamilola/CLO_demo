@@ -26,9 +26,9 @@ const Home = () => {
     {
       id: 1,
       length: "100",
-      quantity: "10",
-      label: "pane",
-      width: "100",
+      quantity: "1",
+      label: "",
+      width: "50",
       material: "",
       result: "50",
       grainDirection: "horizontal",
@@ -38,14 +38,14 @@ const Home = () => {
   const [stockSheetRows, setStockSheetRows] = useState([
     {
       id: 1,
-      length: "500",
+      length: "300",
       quantity: "1",
-      width: "700",
-      label: "sheet",
+      width: "200",
+      label: "",
       material: "",
       result: "",
       selected: true,
-      grainDirection: "vertical",
+      grainDirection: "horizontal",
     },
   ]);
   const [unit, setUnit] = useState("in");
