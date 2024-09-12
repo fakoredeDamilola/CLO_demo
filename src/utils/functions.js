@@ -1,3 +1,5 @@
+import { grainDirections } from "./constants";
+
 function generateRandomString(length) {
   const characters =
     "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
@@ -32,6 +34,7 @@ export function displayPanelAndSheetInfo(
   let panelInfo = "Panel Information:<br>";
   let sheetInfo = "Sheet Information:<br>";
   let detailInfo = "Detail Information:<br>-------<br>";
+  let factorForStockSheet;
 
   // let panelRows = /* ... */;
   const panelData = [];
@@ -425,14 +428,10 @@ export function displayPanelAndSheetInfo(
       `(${sheetWidth}${unit} x ${sheetHeight}${unit}) X${sheetCount}`
     );
 
-    // sheetDetails.push({
-    //   sheetName,
-    //   sheetWidth,
-    //   sheetHeight,
-    //   sheetCount,
-    // });
+    factorForStockSheet = getFactorValueForStockSheet(sheetWidth, sheetHeight);
     totalSheetUsed += sheetCount;
 
+    const { UIHeight, UIWidth } = factorForStockSheet;
     // Container SVG with light yellow background
     svgString += `<svg width="${parseInt(sheetWidth) + 100}" height="${
       parseInt(sheetHeight) + 100
@@ -643,6 +642,43 @@ export function displayPanelAndSheetInfo(
   };
 }
 
+function checkForErrorInData(data, panelLabel, item) {
+  let response = [];
+  for (let i = 0; i < data.length; i++) {
+    if (data[i].selected && panelLabel && data[i].label === "") {
+      response.push({
+        type: "warning",
+        message: `${item} row ${i} label is missing, a random panel Label will be added for you`,
+        continue: true,
+      });
+    }
+    if (
+      data[i].selected &&
+      (data[i].width === "" || data[i].length === "" || data[i].quantity === "")
+    ) {
+      response.push({
+        type: "error",
+        message: `${item} row ${i} width, length, quantity are missing, please fill them in`,
+        continue: false,
+      });
+    }
+  }
+  return response;
+}
+
+function getFactorValueForStockSheet(width, height) {
+  const UIWidth = 500;
+  const UIHeight = 500;
+
+  let factorDimensions = {};
+
+  factorDimensions.width = width / UIWidth;
+  factorDimensions.height = height / UIHeight;
+  factorDimensions.UIWidth = UIWidth;
+  factorDimensions.UIHeight = UIHeight;
+  return factorDimensions;
+}
+
 export function checkForErrors(
   filteredStockSheet,
   filteredPanelSheet,
@@ -664,58 +700,33 @@ export function checkForErrors(
     });
   }
 
-  for (let i = 0; i < filteredPanelSheet.length; i++) {
-    if (
-      filteredPanelSheet[i].selected &&
-      panelLabel &&
-      filteredPanelSheet[i].label === ""
-    ) {
-      response.push({
-        type: "warning",
-        message: `Panel row ${i} label is missing, a random panel Label will be added for you`,
-        continue: true,
-      });
-    }
-    if (
-      filteredPanelSheet[i].selected &&
-      (filteredPanelSheet[i].width === "" ||
-        filteredPanelSheet[i].length === "" ||
-        filteredPanelSheet[i].quantity === "")
-    ) {
-      response.push({
-        type: "error",
-        message: `Panel row ${i} width, length, quantity are missing, please fill them in`,
-        continue: false,
-      });
-    }
-  }
-  for (let i = 0; i < filteredStockSheet.length; i++) {
-    if (
-      filteredStockSheet[i].selected &&
-      panelLabel &&
-      filteredStockSheet[i].label === ""
-    ) {
-      response.push({
-        type: "warning",
-        message: `Sheet row ${i} label is missing, a random panel Label will be added for you`,
-        continue: true,
-      });
-    }
-    if (
-      filteredStockSheet[i].selected &&
-      (filteredStockSheet[i].width === "" ||
-        filteredStockSheet[i].length === "" ||
-        filteredStockSheet[i].quantity === "")
-    ) {
-      response.push({
-        type: "error",
-        message: `Panel row ${i} width, length, quantity are missing, please fill them in`,
-        continue: false,
-      });
-    }
-  }
+  const sheetError = checkForErrorInData(
+    filteredStockSheet,
+    panelLabel,
+    "stock sheet"
+  );
+  const panelError = checkForErrorInData(
+    filteredPanelSheet,
+    panelLabel,
+    "panel"
+  );
+  console.log([...response, ...sheetError, ...panelError]);
+  return [...response, ...sheetError, ...panelError];
+}
 
-  return response;
+export function checkForErrorInExcelFile(data) {
+  const errorResponse = [];
+
+  for (let i = 0; i < data.length; i++) {
+    if (!grainDirections.includes(data[i].grainDirection)) {
+      errorResponse.push({
+        type: "error",
+        message: `grainDirection in file upload ${data[i].grainDirection} not found`,
+        continue: false,
+      });
+    }
+  }
+  return errorResponse;
 }
 
 function computeNotPlacedPanelToGroups(notPlacedPanel) {

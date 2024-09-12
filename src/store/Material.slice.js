@@ -21,7 +21,18 @@ const materialSlice = createSlice({
       state.isModalOpen = false;
     },
     addMaterial(state, action) {
-      state.materials.push({ name: action.payload });
+      if (
+        state.materials.find((material) => material.name === action.payload)
+      ) {
+        return;
+      } else {
+        state.materials.push({
+          name: action.payload,
+          id: state.materials.length + 1,
+        });
+      }
+
+      state.isModalOpen = false;
     },
   },
 });

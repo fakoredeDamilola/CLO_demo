@@ -30,22 +30,6 @@ const InputRows = (props) => {
     handleSelect,
   } = props;
 
-  const dispatch = useDispatch();
-  const materials = useSelector((root) => root.material.materials);
-  const [selectedID, setSelectedID] = useState(0);
-
-  useEffect(() => {
-    if (materials.length > 0) {
-      const newMaterial = materials[materials.length - 1];
-      console.log("New material added:", newMaterial);
-      console.log({ selectedID });
-      handleDataChange(
-        { target: { value: newMaterial.name, name: "material" } },
-        selectedID
-      );
-    }
-  }, [materials]);
-
   const grainDirections = [
     {
       id: 1,
@@ -64,8 +48,22 @@ const InputRows = (props) => {
     },
   ];
 
+  const dispatch = useDispatch();
+  const materials = useSelector((root) => root.material.materials);
+  const [selectedID, setSelectedID] = useState(0);
+
+  useEffect(() => {
+    if (materials.length > 0) {
+      const newMaterial = materials[materials.length - 1];
+      console.log("New material added:", newMaterial);
+      handleDataChange(
+        { target: { value: newMaterial.name, name: "material" } },
+        selectedID
+      );
+    }
+  }, [materials]);
+
   const handleChange = (e, id) => {
-    console.log({ id });
     if (e.target.value === "addNew") {
       setSelectedID(id);
       dispatch(openModal());

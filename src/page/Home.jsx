@@ -3,13 +3,18 @@ import Panelsheet from "../components/Panelsheet";
 import Stocksheet from "../components/Stocksheet";
 import { read, utils } from "xlsx";
 import "../home.css";
-import { checkForErrors, displayPanelAndSheetInfo } from "../utils/functions";
+import {
+  checkForErrors,
+  checkForErrorInExcelFile,
+  displayPanelAndSheetInfo,
+} from "../utils/functions";
 import GlobalSheetTable from "../components/GlobalSheetTable";
 import Header from "../components/Header";
 import Spinner from "../components/Spinner";
 import SheetTable from "../components/SheetTable";
 import ErrorModal from "../components/ErrorModal";
 import NotPlacedPanelTable from "../components/NotPlacedPanelTable";
+import { useDispatch } from "react-redux";
 
 const Home = () => {
   const unitOptions = [
@@ -65,6 +70,7 @@ const Home = () => {
   });
   const [globalSheetStatistics, setGlobalSheetStatistics] = useState({});
   const [notPlacePanels, setNotPlacePanels] = useState([]);
+  const dispatch = useDispatch();
 
   const { considerGrainDirection, addMaterialToSheets, panelLabel } =
     additionalFeatures;
@@ -100,8 +106,8 @@ const Home = () => {
           const sheet = workbook.Sheets[sheetName];
           const sheetData = utils.sheet_to_json(sheet, { header: 1 });
 
-          // Assuming the first row contains headers
           const headers = sheetData[0];
+          console.log({ headers });
           const parsedData = [];
 
           for (let i = 1; i < sheetData.length; i++) {
@@ -112,26 +118,38 @@ const Home = () => {
             }
             parsedData.push(rowData);
           }
-
-          const dataNeeded = parsedData.map((data) => ({
-            length: data.length ?? "",
-            quantity: data.quantity ?? "",
-            label: data.label ?? "",
-            width: data.width ?? "",
-            id: parseInt(Math.random() * data.length),
-            result: data.result ?? "",
-          }));
-          const newRows = dataRows
-            .concat(dataNeeded)
-            .filter((data) => data.length !== "");
-          if (id === "sheets") {
-            setStockSheetRows(newRows);
+          const errors = checkForErrorInExcelFile(parsedData);
+          console.log({ errors });
+          if (errors.length > 0) {
+            setErrors(errors);
+            setShowErrorModal(true);
+            return;
           } else {
-            setPanelRows(newRows);
-          }
+            addDataToMaterialDropdown(parsedData);
+            const dataNeeded = parsedData.map((data) => ({
+              length: data.length ?? "",
+              quantity: data.quantity ?? "",
+              label: data.label ?? "",
+              width: data.width ?? "",
+              id: parseInt(Math.random() * data.length),
+              material: data.material ?? "",
+              grainDirection: data.grainDirection ?? "",
+              material: data.material ?? "",
+              selected: true,
+              result: data.result ?? "",
+            }));
+            const newRows = dataRows
+              .concat(dataNeeded)
+              .filter((data) => data.length !== "");
+            if (id === "sheets") {
+              setStockSheetRows(newRows);
+            } else {
+              setPanelRows(newRows);
+            }
 
-          setSelectedPanelFile(null);
-          setSelectedSheetFile(null);
+            setSelectedPanelFile(null);
+            setSelectedSheetFile(null);
+          }
         };
         reader.readAsBinaryString(selectedFile);
         setSelectedPanelFile(null);
@@ -140,6 +158,12 @@ const Home = () => {
         console.error("Uploaded file is not an Excel file");
       }
     }
+  };
+
+  const addDataToMaterialDropdown = (data) => {
+    data.forEach((item) => {
+      dispatch(addMaterial(item.material));
+    });
   };
 
   const handleUnitInput = (event) => {
@@ -198,36 +222,6 @@ const Home = () => {
     setUsedStockSheets(results.usedStockSheets);
     setPanelThickness(results.panelThickness);
     setLoading(false);
-  };
-
-  function getActualValueBasedOnUnit(unit) {
-    const DPIValues = getDPI();
-    if (!changeIntialUnit) {
-      // whatever unit put there is the data we are going with
-      if (unit === "in") {
-        const newStockValues = stockSheetRows.map((data) => {
-          return {
-            length: parseInt(data.length) * DPIValues,
-            width: parseInt(data.width) * DPIValues,
-          };
-        });
-      }
-    }
-  }
-
-  function getDPI() {
-    // Create a temporary element to measure DPI
-    const div = document.createElement("div");
-    div.style.width = "1in";
-    document.body.appendChild(div);
-    const dpi = div.offsetWidth;
-    document.body.removeChild(div);
-    return dpi;
-  }
-
-  const conversionList = {
-    cm: "0.026458333cm",
-    in: "0.0104166665in",
   };
 
   return (
