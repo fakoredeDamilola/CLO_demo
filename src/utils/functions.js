@@ -304,18 +304,8 @@ export function displayPanelAndSheetInfo(
     totalSheetLength += parseInt(sheet.length);
   });
 
-  // Set canvas dimensions based on total sheet area with some padding
   canvas.height = 20; // Adding 20px padding
   canvas.width = 20; // Adding 20px padding
-
-  // Display total width and height labels outside the canvas
-  // const totalWidthLabel = document.getElementById('totalWidthLabel');
-  // const totalHeightLabel = document.getElementById('totalSheetLength');
-
-  // totalWidthLabel.innerHTML = `${totalSheetWidth}`;
-  // totalHeightLabel.innerHTML = `${totalSheetLength}`;
-
-  //---------------------------------------------------------------------
 
   const panels = [];
   const sheetStatistics = [];
@@ -367,7 +357,6 @@ export function displayPanelAndSheetInfo(
   const margin = 25;
 
   const scale = 1;
-  // const scale = Math.min(scaleX, scaleY);
 
   // Function to generate a unique key for a sheet based on its panels
   function generateSheetKey(sheetPanels) {
@@ -407,9 +396,8 @@ export function displayPanelAndSheetInfo(
     const sheetHeight = parseFloat(sheetPanels[0].sheetLength);
 
     // Create a 2D array to represent the sheet
-    const sheetArray = Array.from(
-      { length: Math.ceil(sheetHeight * scale) },
-      () => Array(Math.ceil(sheetWidth * scale)).fill(0)
+    const sheetArray = Array.from({ length: Math.ceil(sheetHeight) }, () =>
+      Array(Math.ceil(sheetWidth)).fill(0)
     );
 
     // Get the last panel for the current sheet
@@ -433,29 +421,25 @@ export function displayPanelAndSheetInfo(
 
     const { UIHeight, UIWidth } = factorForStockSheet;
     // Container SVG with light yellow background
-    svgString += `<svg width="${parseInt(sheetWidth) + 100}" height="${
-      parseInt(sheetHeight) + 100
+    svgString += `<svg width="${parseInt(UIWidth) + 100}" height="${
+      parseInt(UIHeight) + 100
     }" xmlns="http://www.w3.org/2000/svg" style="background-color: lightyellow; margin: ${margin}px; position: relative;">`;
 
     // Inner sheet SVG with white background, without border
-    svgString += `<svg width="${sheetWidth}" height="${
-      sheetHeight * scale
-    }" x="${margin}" y="${margin}" style="background-color: white;">`;
+    svgString += `<svg width="${UIWidth}" height="${UIHeight}" x="${margin}" y="${margin}" style="background-color: white;">`;
 
     // Add a black border rectangle inside the sheet SVG
-    svgString += `<rect x="0" y="0" width="${sheetWidth * scale}" height="${
-      sheetHeight * scale
-    }" fill="none" stroke="black" stroke-width="1"/>`;
+    svgString += `<rect x="0" y="0" width="${UIWidth}" height="${UIHeight}" fill="none" stroke="black" stroke-width="1"/>`;
 
     // Track the bounds of the used area
     let usedBounds = { maxX: 0, maxY: 0 };
 
     // Add panels to the SVG, mark used areas in the array, and track the unused spaces
     sheetPanels.forEach((panel, index) => {
-      const scaledX = Math.floor(panel.x * scale);
-      const scaledY = Math.floor(panel.y * scale);
-      const scaledWidth = Math.floor(panel.width * scale);
-      const scaledLength = Math.floor(panel.length * scale);
+      const scaledX = Math.floor(panel.x);
+      const scaledY = Math.floor(panel.y);
+      const scaledWidth = Math.floor(panel.width);
+      const scaledLength = Math.floor(panel.length);
 
       // Mark used areas in the sheetArray
       for (let y = scaledY; y < scaledY + scaledLength; y++) {
@@ -471,8 +455,18 @@ export function displayPanelAndSheetInfo(
       usedBounds.maxY = Math.max(usedBounds.maxY, scaledY + scaledLength);
 
       // Draw the panel
+      // reduce each panel size
+      const panelLenghtReduced = scaledLength / factorForStockSheet.height;
+      const panelWidthReduced = scaledWidth / factorForStockSheet.width;
+      const positionX = scaledX / factorForStockSheet.width;
+      const positionY = scaledY / factorForStockSheet.height;
+      console.log({
+        panelLenghtReduced,
+        panelWidthReduced,
+        factorForStockSheet,
+      });
       if (panelLabel) {
-        svgString += `<rect x="${scaledX}" y="${scaledY}" width="${scaledWidth}" height="${scaledLength}" fill="${
+        svgString += `<rect x="${positionX}" y="${positionY}" width="${panelWidthReduced}" height="${panelLenghtReduced}" fill="${
           panel.panelColor
         }" stroke="black" stroke-width="1" class="panel-rect">
           <title>${panel.panelName}: ${panel.length} x ${
@@ -481,23 +475,23 @@ export function displayPanelAndSheetInfo(
           panel.rotation
         }, Panel (XY): ${scaledX} ${scaledY}</title>
         </rect>
-        <text x="${scaledX + scaledWidth / 2}" y="${
-          scaledY + 25
+        <text x="${positionX + panelWidthReduced / 2}" y="${
+          positionY + 25
         }" text-anchor="middle" font-size="10" fill="black">${
           panel.panelName
         }</text>
-        <text x="${scaledX + 10}" y="${
-          scaledY + scaledLength / 2
+        <text x="${positionX + 10}" y="${
+          positionY + panelLenghtReduced / 2
         }" text-anchor="left" font-size="8" fill="black" transform="rotate(-90, ${
-          scaledX + 10
-        }, ${scaledY + scaledLength / 2})">${panel.length}</text>
-        <text x="${scaledX + scaledWidth / 2}" y="${
-          scaledY + 10
+          positionX + 10
+        }, ${positionY + panelLenghtReduced / 2})">${panel.length}</text>
+        <text x="${positionX + panelWidthReduced / 2}" y="${
+          positionY + 10
         }" text-anchor="middle" font-size="8" fill="black">${
           panel.width
         }</text>`;
       } else {
-        svgString += `<rect x="${scaledX}" y="${scaledY}" width="${scaledWidth}" height="${scaledLength}" fill="${panel.panelColor}" vector-effect="non-scaling-stroke" stroke="black" stroke-width="1" class="panel-rect">
+        svgString += `<rect x="${positionX}" y="${positionY}" width="${panelWidthReduced}" height="${panelLenghtReduced}" fill="${panel.panelColor}" vector-effect="non-scaling-stroke" stroke="black" stroke-width="1" class="panel-rect">
           <title>${panel.panelName}: ${panel.length} x ${panel.width}, Rotation: ${panel.rotation}, Panel (XY): ${scaledX} ${scaledY}</title>
         </rect>`;
       }
@@ -527,12 +521,17 @@ export function displayPanelAndSheetInfo(
             height++;
           }
 
+          // reduce the size of unused sheet and height
+          const unusedSheetWidthReduced = width / factorForStockSheet.width;
+          const unusedSheetHeightReduced = height / factorForStockSheet.height;
+          const unusedXPosition = x / factorForStockSheet.width;
+          const unusedYPosition = y / factorForStockSheet.height;
+
           // Draw the unused area
+
           count_cut++;
-          svgString += `<rect x="${x}" y="${y}" width="${width}" height="${height}" fill="lightgrey" opacity="0.5" stroke="blue" stroke-width="1">
-            <title>Unused Area ${count_cut}: (W:${width / scale} x H:${
-            height / scale
-          }) x="${x}" y="${y}"</title>
+          svgString += `<rect x="${unusedXPosition}" y="${unusedYPosition}" width="${unusedSheetWidthReduced}" height="${unusedSheetHeightReduced}" fill="lightgrey" opacity="0.5" stroke="blue" stroke-width="1">
+            <title>Unused Area ${count_cut}: (W:${width} x H:${height}) x="${x}" y="${y}"</title>
           </rect>`;
 
           // Mark this area as used to avoid redrawing
@@ -548,26 +547,26 @@ export function displayPanelAndSheetInfo(
     svgString += `</svg>`; // Closing sheet SVG
 
     // Add sheet length and width labels outside the sheet border
-    svgString += `<text x="${sheetWidth * scale + margin + 30}" y="${
-      sheetHeight / 2 + margin
+    svgString += `<text x="${UIWidth + margin + 30}" y="${
+      UIHeight / 2 + margin
     }" fill="red" font-size="14" transform="rotate(-90, ${
-      sheetWidth * scale + margin + 30
-    }, ${sheetHeight / 2 + margin})">${sheetHeight}</text>`;
+      UIWidth + margin + 30
+    }, ${UIHeight / 2 + margin})">${sheetHeight}</text>`;
 
-    svgString += `<line x1="${
-      sheetWidth * scale + margin + 15
-    }" y1="${margin}" x2="${sheetWidth * scale + margin + 15}" y2="${
-      sheetHeight * scale + margin
+    svgString += `<line x1="${UIWidth + margin + 15}" y1="${margin}" x2="${
+      UIWidth + margin + 15
+    }" y2="${
+      UIHeight + margin
     }" stroke="red" stroke-width="1" marker-end="url(#arrow)" marker-start="url(#arrow)"/>`;
 
-    svgString += `<text x="${sheetWidth / 2.5}" y="${
-      sheetHeight * scale + margin + 17
+    svgString += `<text x="${UIWidth / 2.5}" y="${
+      UIHeight + margin + 17
     }" fill="red" font-size="14">${sheetWidth}</text>`;
 
-    svgString += `<line x1="${margin}" y1="${
-      sheetHeight * scale + margin + 20
-    }" x2="${sheetWidth * scale + margin}" y2="${
-      sheetHeight * scale + margin + 20
+    svgString += `<line x1="${margin}" y1="${UIHeight + margin + 20}" x2="${
+      UIWidth + margin
+    }" y2="${
+      UIHeight + margin + 20
     }" stroke="red" stroke-width="1" marker-end="url(#arrow)" marker-start="url(#arrow)"/>`;
 
     // Define the arrow marker
@@ -575,7 +574,7 @@ export function displayPanelAndSheetInfo(
 
     // Add the sheet count label outside the inner sheet SVG, at the bottom
     svgString += `<text x="${margin}" y="${
-      sheetHeight * scale + margin + 40
+      UIHeight + margin + 40
     }" fill="black" font-size="16px">${sheetName}: x${sheetCount} </text>`;
 
     svgString += `</svg>`; // Closing container SVG
