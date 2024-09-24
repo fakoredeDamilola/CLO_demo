@@ -12,9 +12,11 @@ const Stocksheet = (props) => {
     setChangeIntialUnit,
     addMaterialToSheets,
     considerGrainDirection,
+    handlePaste,
+    fileInputRef,
   } = props;
+  console.log({ stockSheetRows });
 
-  const fileSheetRef = useRef(null);
   const [isInputFocused, setIsInputFocused] = useState(false);
 
   const handleInputFocus = () => {
@@ -95,12 +97,13 @@ const Stocksheet = (props) => {
         considerGrainDirection={considerGrainDirection}
         changeGrainDirection={changeGrainDirection}
         handleSelect={handleSelect}
+        onPaste={handlePaste}
       />
       <div className="custom-upload-container">
         <input
           type="file"
           id="sheetFileInput"
-          ref={fileSheetRef}
+          ref={fileInputRef}
           name="sheets"
           style={{ display: "none" }}
           accept=".xlsx, .xls"

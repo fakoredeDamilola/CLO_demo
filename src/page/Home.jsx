@@ -15,6 +15,9 @@ import SheetTable from "../components/SheetTable";
 import ErrorModal from "../components/ErrorModal";
 import NotPlacedPanelTable from "../components/NotPlacedPanelTable";
 import { useDispatch } from "react-redux";
+import { addMaterial } from "../store/Material.slice";
+import MetalWeightCalculator from "../components/MetalWeightCalculator";
+import GeneratePDF from "../components/GeneratePDF";
 
 const Home = () => {
   const unitOptions = [
@@ -60,7 +63,7 @@ const Home = () => {
   const [showErrorModal, setShowErrorModal] = useState(false);
   const [changeIntialUnit, setChangeIntialUnit] = useState(false);
   const [sheetStatistics, setSheetStatistics] = useState([]);
-
+  const [resultReady, setResultReady] = useState(false);
   const [selectedPanelFile, setSelectedPanelFile] = useState(null);
   const [selectedSheetFile, setSelectedSheetFile] = useState(null);
   const [additionalFeatures, setAdditionalFeatures] = useState({
@@ -68,9 +71,11 @@ const Home = () => {
     addMaterialToSheets: false,
     panelLabel: false,
   });
+  const [svgString, setSvgString] = useState("");
   const [globalSheetStatistics, setGlobalSheetStatistics] = useState({});
   const [notPlacePanels, setNotPlacePanels] = useState([]);
   const dispatch = useDispatch();
+  const fileInputRef = useRef(null);
 
   const { considerGrainDirection, addMaterialToSheets, panelLabel } =
     additionalFeatures;
@@ -92,6 +97,7 @@ const Home = () => {
     const selectedFile =
       id === "panels" ? selectedPanelFile : selectedSheetFile;
     const dataRows = id === "panels" ? panelRows : stockSheetRows;
+    console.log({ id, selectedFile });
 
     if (selectedFile) {
       if (
@@ -107,7 +113,6 @@ const Home = () => {
           const sheetData = utils.sheet_to_json(sheet, { header: 1 });
 
           const headers = sheetData[0];
-          console.log({ headers });
           const parsedData = [];
 
           for (let i = 1; i < sheetData.length; i++) {
@@ -118,6 +123,7 @@ const Home = () => {
             }
             parsedData.push(rowData);
           }
+
           const errors = checkForErrorInExcelFile(parsedData);
           console.log({ errors });
           if (errors.length > 0) {
@@ -134,26 +140,29 @@ const Home = () => {
               id: parseInt(Math.random() * data.length),
               material: data.material ?? "",
               grainDirection: data.grainDirection ?? "",
-              material: data.material ?? "",
               selected: true,
               result: data.result ?? "",
             }));
+
             const newRows = dataRows
               .concat(dataNeeded)
               .filter((data) => data.length !== "");
+            console.log({ newRows });
             if (id === "sheets") {
               setStockSheetRows(newRows);
             } else {
               setPanelRows(newRows);
             }
 
+            // Reset file state and input element
             setSelectedPanelFile(null);
             setSelectedSheetFile(null);
+            if (fileInputRef.current) {
+              fileInputRef.current.value = ""; // This clears the file input element
+            }
           }
         };
         reader.readAsBinaryString(selectedFile);
-        setSelectedPanelFile(null);
-        setSelectedSheetFile(null);
       } else {
         console.error("Uploaded file is not an Excel file");
       }
@@ -195,6 +204,7 @@ const Home = () => {
   };
 
   const optimizeDataAndResult = () => {
+    setResultReady(false);
     const filteredStockSheet = filterUnusedData(stockSheetRows);
     const filteredPanelSheet = filterUnusedData(panelRows);
 
@@ -212,8 +222,8 @@ const Home = () => {
       sheetStatistics,
       globalSheetStatistics,
       notPlacedPanelArray,
+      svgString,
     } = response;
-
     setSheetStatistics(sheetStatistics);
     setOptimizationCompleted(true);
     setGlobalSheetStatistics(globalSheetStatistics);
@@ -221,7 +231,22 @@ const Home = () => {
     setNotPlacePanels(notPlacedPanelArray);
     setUsedStockSheets(results.usedStockSheets);
     setPanelThickness(results.panelThickness);
+    setSvgString(svgString);
+    console.log({ results });
     setLoading(false);
+    setResultReady(true);
+  };
+
+  const handlePaste = (e) => {
+    // Prevent the default paste behavior
+    e.preventDefault();
+
+    // Get the pasted content as text
+    const pastedData = e.clipboardData.getData("text");
+    console.log("Pasted content:", pastedData);
+
+    // Set the pasted text to the state
+    setPastedText(pastedData);
   };
 
   return (
@@ -246,6 +271,8 @@ const Home = () => {
                   setChangeIntialUnit={setChangeIntialUnit}
                   handleUpload={() => handleUpload("sheets")}
                   addMaterialToSheets={addMaterialToSheets}
+                  onPaste={handlePaste}
+                  fileInputRef={fileInputRef}
                   considerGrainDirection={considerGrainDirection}
                 />
                 <div style={{ margin: "50px 0" }}>
@@ -258,6 +285,8 @@ const Home = () => {
                     selectedFile={selectedPanelFile}
                     handleUpload={() => handleUpload("panels")}
                     addMaterialToSheets={addMaterialToSheets}
+                    onPaste={handlePaste}
+                    fileInputRef={fileInputRef}
                     considerGrainDirection={considerGrainDirection}
                   />
                 </div>
@@ -427,6 +456,12 @@ const Home = () => {
                   height="1"
                 ></canvas>
               </div>
+              {resultReady && (
+                <GeneratePDF
+                  globalSheetStatistics={globalSheetStatistics}
+                  svgString={svgString}
+                />
+              )}
               {optimizationCompleted && (
                 <div>
                   <div className="container">
@@ -456,6 +491,8 @@ const Home = () => {
           </div>
         </div>
       )}
+
+      <MetalWeightCalculator />
       <ErrorModal
         show={showErrorModal}
         onClose={handleCloseModal}

@@ -1,6 +1,4 @@
 import React, { useEffect, useRef, useState } from "react";
-import { FaArrowsAltH, FaArrowsAltV } from "react-icons/fa";
-import { TiStarburst } from "react-icons/ti";
 import InputRows from "./InputRows";
 
 const Panelsheet = (props) => {
@@ -14,8 +12,10 @@ const Panelsheet = (props) => {
     setChangeIntialUnit,
     addMaterialToSheets,
     considerGrainDirection,
+    handlePaste,
+    fileInputRef,
   } = props;
-  const fileInputRef = useRef(null);
+
   const addRow = () => {
     const initialRow = {
       id: "",
@@ -98,6 +98,7 @@ const Panelsheet = (props) => {
         considerGrainDirection={considerGrainDirection}
         changeGrainDirection={changeGrainDirection}
         handleSelect={handleSelect}
+        onPaste={handlePaste}
       />
       <div className="custom-upload-container">
         <input

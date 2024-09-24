@@ -28,6 +28,7 @@ const InputRows = (props) => {
     considerGrainDirection,
     changeGrainDirection,
     handleSelect,
+    handlePaste,
   } = props;
 
   const grainDirections = [
@@ -134,33 +135,36 @@ const InputRows = (props) => {
                 <tr>
                   <td>
                     <input
-                      type="number"
+                      type="text"
                       name="length"
                       value={length}
                       onChange={(e) => handleDataChange(e, id)}
                       onFocus={handleInputFocus}
                       onBlur={handleInputBlur}
+                      onPaste={handlePaste}
                     />
                   </td>
                   <td>
                     <input
-                      type="number"
+                      type="text"
                       name="width"
                       value={width}
                       onChange={(e) => handleDataChange(e, id)}
                       onFocus={handleInputFocus}
                       onBlur={handleInputBlur}
+                      onPaste={handlePaste}
                     />
                   </td>
 
                   <td>
                     <input
-                      type="number"
+                      type="text"
                       name="quantity"
                       value={quantity}
                       onChange={(e) => handleDataChange(e, id)}
                       onFocus={handleInputFocus}
                       onBlur={handleInputBlur}
+                      onPaste={handlePaste}
                     />
                   </td>
                   {addMaterialToSheets && (

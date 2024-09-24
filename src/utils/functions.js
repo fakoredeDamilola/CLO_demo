@@ -591,6 +591,7 @@ export function displayPanelAndSheetInfo(
         panels: sheetData.panels.length,
       });
     }
+    console.log({});
   }); // End of uniqueSheets.forEach
 
   // Calculate overall percentages
@@ -633,11 +634,13 @@ export function displayPanelAndSheetInfo(
     totalParts: panelData.length - notPlacedPanel.length,
     totalSheetUsed,
   };
+  console.log({ svgString });
   return {
     totalData,
     sheetStatistics,
     globalSheetStatistics,
     notPlacedPanelArray,
+    svgString,
   };
 }
 
