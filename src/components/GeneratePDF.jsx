@@ -1,7 +1,11 @@
 import React from "react";
 import jsPDF from "jspdf";
 
-const GeneratePDF = ({ globalSheetStatistics, svgString }) => {
+const GeneratePDF = ({
+  globalSheetStatistics,
+  svgSheetArray,
+  panelRowData,
+}) => {
   const generatePDF = async () => {
     const doc = new jsPDF("p", "mm", "a4");
     const pageHeight = doc.internal.pageSize.height;
@@ -10,9 +14,7 @@ const GeneratePDF = ({ globalSheetStatistics, svgString }) => {
     const lineHeight = 10;
     const colWidth = (pageWidth - 2 * margin) / 2;
 
-    let currentPage = 1;
-    let yOffset = 20; // Initial offset (below header)
-
+    let yOffset = 20;
     const addHeaderAndFooter = (doc, pageNumber, totalPages) => {
       // Header
       doc.setFontSize(12);
@@ -42,7 +44,6 @@ const GeneratePDF = ({ globalSheetStatistics, svgString }) => {
         doc.text(formattedText, xOffset, yOffset + index * lineHeight);
       });
       return column.length * lineHeight;
-      // yOffset += column.length * lineHeight;
     };
 
     const generateGlobalData = (globalSheetStatistics) => {
@@ -56,6 +57,51 @@ const GeneratePDF = ({ globalSheetStatistics, svgString }) => {
       const offset1 = renderColumn(column1, margin);
       renderColumn(column2, margin + colWidth);
       yOffset += offset1;
+    };
+
+    const tableHeading = () => {
+      doc.setFontSize(13);
+      doc.text("Panel Details", margin, yOffset + 10);
+
+      yOffset += 10;
+    };
+
+    const drawTable = () => {
+      tableHeading();
+
+      const tableX = margin;
+      const tableY = yOffset + 10; // Some space after the global data
+      const rowHeight = 10;
+      const colWidth = (pageWidth - 2 * margin) / 3;
+
+      // Draw headers
+      doc.setFontSize(10);
+      doc.text("Length", tableX, tableY);
+      doc.text("Width", tableX + colWidth, tableY);
+      doc.text("Quantity", tableX + 2 * colWidth, tableY);
+
+      // Draw lines for the table header
+      doc.line(tableX, tableY + 2, pageWidth - margin, tableY + 2); // Line below header
+
+      // Adding sample data (you can replace this with dynamic data if needed)
+      const tableData = panelRowData.map((row) => ({
+        length: row.length,
+        width: row.width,
+        quantity: row.quantity,
+      }));
+
+      // Draw rows with data
+      tableData.forEach((row, index) => {
+        const rowY = tableY + (index + 1) * rowHeight;
+        doc.text(row.length, tableX, rowY);
+        doc.text(row.width, tableX + colWidth, rowY);
+        doc.text(row.quantity, tableX + 2 * colWidth, rowY);
+
+        // Draw horizontal line after each row
+        doc.line(tableX, rowY + 2, pageWidth - margin, rowY + 2);
+      });
+
+      yOffset = tableY + (tableData.length + 1) * rowHeight; // Adjust yOffset after the table
     };
 
     // Function to convert SVG string to a PNG using a canvas
@@ -96,23 +142,20 @@ const GeneratePDF = ({ globalSheetStatistics, svgString }) => {
         let imgWidth = pageWidth - 20;
         let imgHeight = (svgHeight / svgWidth) * imgWidth;
 
-        // Check if there's enough space left on the current page
         if (yOffset + imgHeight + 20 > pageHeight) {
-          doc.addPage(); // Add new page if necessary
-          yOffset = 20; // Reset yOffset for the new page
+          doc.addPage();
+          yOffset = 20;
         }
 
-        // Add the image at the current yOffset
         doc.addImage(imgData, "PNG", 10, yOffset + 10, imgWidth, imgHeight);
-        yOffset += imgHeight + 20; // Update yOffset for the next image
+        yOffset += imgHeight + 20;
       }
     };
 
-    const splitSVGs = svgString.split(/(?=<svg)/); // Regex to split at each <svg tag
-    console.log({ splitSVGs });
     generateGlobalData(globalSheetStatistics);
     // Add all SVGs to the PDF
-    await addImageStocksheetToPDF(splitSVGs);
+    drawTable();
+    await addImageStocksheetToPDF(svgSheetArray);
 
     // Add headers and footers to all pages
     const totalPages = doc.internal.getNumberOfPages();

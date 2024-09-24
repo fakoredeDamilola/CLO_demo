@@ -38,6 +38,7 @@ export function displayPanelAndSheetInfo(
 
   // let panelRows = /* ... */;
   const panelData = [];
+  const svgSheetArray = [];
   const panelGroupColors = {};
   const { considerGrainDirection, addMaterialToSheets, panelLabel } =
     additionalFeatures;
@@ -420,16 +421,17 @@ export function displayPanelAndSheetInfo(
     totalSheetUsed += sheetCount;
 
     const { UIHeight, UIWidth } = factorForStockSheet;
+    let newSVGSheet = "";
     // Container SVG with light yellow background
-    svgString += `<svg width="${parseInt(UIWidth) + 100}" height="${
+    newSVGSheet += `<svg width="${parseInt(UIWidth) + 100}" height="${
       parseInt(UIHeight) + 100
     }" xmlns="http://www.w3.org/2000/svg" style="background-color: lightyellow; margin: ${margin}px; position: relative;">`;
 
     // Inner sheet SVG with white background, without border
-    svgString += `<svg width="${UIWidth}" height="${UIHeight}" x="${margin}" y="${margin}" style="background-color: white;">`;
+    newSVGSheet += `<svg width="${UIWidth}" height="${UIHeight}" x="${margin}" y="${margin}" style="background-color: white;">`;
 
     // Add a black border rectangle inside the sheet SVG
-    svgString += `<rect x="0" y="0" width="${UIWidth}" height="${UIHeight}" fill="none" stroke="black" stroke-width="1"/>`;
+    newSVGSheet += `<rect x="0" y="0" width="${UIWidth}" height="${UIHeight}" fill="none" stroke="black" stroke-width="1"/>`;
 
     // Track the bounds of the used area
     let usedBounds = { maxX: 0, maxY: 0 };
@@ -466,7 +468,7 @@ export function displayPanelAndSheetInfo(
         factorForStockSheet,
       });
       if (panelLabel) {
-        svgString += `<rect x="${positionX}" y="${positionY}" width="${panelWidthReduced}" height="${panelLenghtReduced}" fill="${
+        newSVGSheet += `<rect x="${positionX}" y="${positionY}" width="${panelWidthReduced}" height="${panelLenghtReduced}" fill="${
           panel.panelColor
         }" stroke="black" stroke-width="1" class="panel-rect">
           <title>${panel.panelName}: ${panel.length} x ${
@@ -491,7 +493,7 @@ export function displayPanelAndSheetInfo(
           panel.width
         }</text>`;
       } else {
-        svgString += `<rect x="${positionX}" y="${positionY}" width="${panelWidthReduced}" height="${panelLenghtReduced}" fill="${panel.panelColor}" vector-effect="non-scaling-stroke" stroke="black" stroke-width="1" class="panel-rect">
+        newSVGSheet += `<rect x="${positionX}" y="${positionY}" width="${panelWidthReduced}" height="${panelLenghtReduced}" fill="${panel.panelColor}" vector-effect="non-scaling-stroke" stroke="black" stroke-width="1" class="panel-rect">
           <title>${panel.panelName}: ${panel.length} x ${panel.width}, Rotation: ${panel.rotation}, Panel (XY): ${scaledX} ${scaledY}</title>
         </rect>`;
       }
@@ -530,7 +532,7 @@ export function displayPanelAndSheetInfo(
           // Draw the unused area
 
           count_cut++;
-          svgString += `<rect x="${unusedXPosition}" y="${unusedYPosition}" width="${unusedSheetWidthReduced}" height="${unusedSheetHeightReduced}" fill="lightgrey" opacity="0.5" stroke="blue" stroke-width="1">
+          newSVGSheet += `<rect x="${unusedXPosition}" y="${unusedYPosition}" width="${unusedSheetWidthReduced}" height="${unusedSheetHeightReduced}" fill="lightgrey" opacity="0.5" stroke="blue" stroke-width="1">
             <title>Unused Area ${count_cut}: (W:${width} x H:${height}) x="${x}" y="${y}"</title>
           </rect>`;
 
@@ -544,40 +546,40 @@ export function displayPanelAndSheetInfo(
       }
     }
 
-    svgString += `</svg>`; // Closing sheet SVG
+    newSVGSheet += `</svg>`; // Closing sheet SVG
 
     // Add sheet length and width labels outside the sheet border
-    svgString += `<text x="${UIWidth + margin + 30}" y="${
+    newSVGSheet += `<text x="${UIWidth + margin + 30}" y="${
       UIHeight / 2 + margin
     }" fill="red" font-size="14" transform="rotate(-90, ${
       UIWidth + margin + 30
     }, ${UIHeight / 2 + margin})">${sheetHeight}</text>`;
 
-    svgString += `<line x1="${UIWidth + margin + 15}" y1="${margin}" x2="${
+    newSVGSheet += `<line x1="${UIWidth + margin + 15}" y1="${margin}" x2="${
       UIWidth + margin + 15
     }" y2="${
       UIHeight + margin
     }" stroke="red" stroke-width="1" marker-end="url(#arrow)" marker-start="url(#arrow)"/>`;
 
-    svgString += `<text x="${UIWidth / 2.5}" y="${
+    newSVGSheet += `<text x="${UIWidth / 2.5}" y="${
       UIHeight + margin + 17
     }" fill="red" font-size="14">${sheetWidth}</text>`;
 
-    svgString += `<line x1="${margin}" y1="${UIHeight + margin + 20}" x2="${
+    newSVGSheet += `<line x1="${margin}" y1="${UIHeight + margin + 20}" x2="${
       UIWidth + margin
     }" y2="${
       UIHeight + margin + 20
     }" stroke="red" stroke-width="1" marker-end="url(#arrow)" marker-start="url(#arrow)"/>`;
 
     // Define the arrow marker
-    svgString += `<defs><marker id="arrow" viewBox="0 0 2 10" refX="1" refY="5" markerWidth="2" markerHeight="10" orient="auto"><rect x="0" y="0" width="2" height="10" fill="red"/></marker></defs>`;
+    newSVGSheet += `<defs><marker id="arrow" viewBox="0 0 2 10" refX="1" refY="5" markerWidth="2" markerHeight="10" orient="auto"><rect x="0" y="0" width="2" height="10" fill="red"/></marker></defs>`;
 
     // Add the sheet count label outside the inner sheet SVG, at the bottom
-    svgString += `<text x="${margin}" y="${
+    newSVGSheet += `<text x="${margin}" y="${
       UIHeight + margin + 40
     }" fill="black" font-size="16px">${sheetName}: x${sheetCount} </text>`;
 
-    svgString += `</svg>`; // Closing container SVG
+    newSVGSheet += `</svg>`; // Closing container SVG
 
     const totalAreaUsedPercentage = (sheetTotalAreaUsed / sheetTotalArea) * 100;
     for (let i = 1; i <= sheetCount; i++) {
@@ -591,7 +593,10 @@ export function displayPanelAndSheetInfo(
         panels: sheetData.panels.length,
       });
     }
-    console.log({});
+
+    svgString += newSVGSheet;
+    console.log({ newSVGSheet });
+    svgSheetArray.push(newSVGSheet);
   }); // End of uniqueSheets.forEach
 
   // Calculate overall percentages
@@ -634,13 +639,13 @@ export function displayPanelAndSheetInfo(
     totalParts: panelData.length - notPlacedPanel.length,
     totalSheetUsed,
   };
-  console.log({ svgString });
   return {
     totalData,
     sheetStatistics,
     globalSheetStatistics,
     notPlacedPanelArray,
     svgString,
+    svgSheetArray,
   };
 }
 

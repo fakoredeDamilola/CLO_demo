@@ -72,6 +72,7 @@ const Home = () => {
     panelLabel: false,
   });
   const [svgString, setSvgString] = useState("");
+  const [svgSheetArray, setSvgSheetArray] = useState([]);
   const [globalSheetStatistics, setGlobalSheetStatistics] = useState({});
   const [notPlacePanels, setNotPlacePanels] = useState([]);
   const dispatch = useDispatch();
@@ -223,11 +224,13 @@ const Home = () => {
       globalSheetStatistics,
       notPlacedPanelArray,
       svgString,
+      svgSheetArray,
     } = response;
+    console.log({ panelRows });
     setSheetStatistics(sheetStatistics);
     setOptimizationCompleted(true);
     setGlobalSheetStatistics(globalSheetStatistics);
-
+    setSvgSheetArray(svgSheetArray);
     setNotPlacePanels(notPlacedPanelArray);
     setUsedStockSheets(results.usedStockSheets);
     setPanelThickness(results.panelThickness);
@@ -459,7 +462,8 @@ const Home = () => {
               {resultReady && (
                 <GeneratePDF
                   globalSheetStatistics={globalSheetStatistics}
-                  svgString={svgString}
+                  svgSheetArray={svgSheetArray}
+                  panelRowData={panelRows}
                 />
               )}
               {optimizationCompleted && (
