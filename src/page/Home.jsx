@@ -42,13 +42,35 @@ const Home = () => {
       grainDirection: "horizontal",
       selected: true,
     },
+    {
+      id: 2,
+      length: "100",
+      quantity: "100",
+      label: "",
+      width: "500",
+      material: "",
+      result: "50",
+      grainDirection: "horizontal",
+      selected: true,
+    },
+    {
+      id: 3,
+      length: "250",
+      quantity: "50",
+      label: "",
+      width: "700",
+      material: "",
+      result: "50",
+      grainDirection: "horizontal",
+      selected: true,
+    },
   ]);
   const [stockSheetRows, setStockSheetRows] = useState([
     {
       id: 1,
-      length: "300",
-      quantity: "1",
-      width: "200",
+      length: "2440",
+      quantity: "7",
+      width: "1200",
       label: "",
       material: "",
       result: "",
@@ -464,6 +486,9 @@ const Home = () => {
                   globalSheetStatistics={globalSheetStatistics}
                   svgSheetArray={svgSheetArray}
                   panelRowData={panelRows}
+                  stockRowData={stockSheetRows}
+                  additionalFeatures={additionalFeatures}
+                  notPlacedPanels={notPlacePanels}
                 />
               )}
               {optimizationCompleted && (

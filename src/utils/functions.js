@@ -582,21 +582,25 @@ export function displayPanelAndSheetInfo(
     newSVGSheet += `</svg>`; // Closing container SVG
 
     const totalAreaUsedPercentage = (sheetTotalAreaUsed / sheetTotalArea) * 100;
+    const individualSheetDetails = {
+      stockSheetWidth: sheetWidth,
+      stockSheetHeight: sheetHeight,
+      usedArea: sheetTotalAreaUsed,
+      totalAreaUsedPercentage,
+      wastedArea: sheetTotalArea - sheetTotalAreaUsed,
+      totalWastedAreaPercentage: 100 - totalAreaUsedPercentage,
+      panels: sheetData.panels.length,
+      // material:s
+    };
     for (let i = 1; i <= sheetCount; i++) {
-      sheetStatistics.push({
-        stockSheetWidth: sheetWidth,
-        stockSheetHeight: sheetHeight,
-        usedArea: sheetTotalAreaUsed,
-        totalAreaUsedPercentage,
-        wastedArea: sheetTotalArea - sheetTotalAreaUsed,
-        totalWastedAreaPercentage: 100 - totalAreaUsedPercentage,
-        panels: sheetData.panels.length,
-      });
+      sheetStatistics.push(individualSheetDetails);
     }
 
     svgString += newSVGSheet;
-    console.log({ newSVGSheet });
-    svgSheetArray.push(newSVGSheet);
+    svgSheetArray.push({
+      newSVGSheet,
+      sheetInfo: { ...individualSheetDetails, sheetCount },
+    });
   }); // End of uniqueSheets.forEach
 
   // Calculate overall percentages

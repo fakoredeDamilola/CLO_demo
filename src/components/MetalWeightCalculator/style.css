@@ -1,0 +1,157 @@
+/* Basic styles */
+body {
+  font-family: Arial, sans-serif;
+  margin: 0;
+  padding: 20px;
+  background-color: var(--background-color);
+  color: var(--text-color);
+}
+
+.container {
+  max-width: 900px;
+  margin: auto;
+  background: var(--container-background);
+  padding: 20px;
+  border-radius: 8px;
+}
+
+h1,
+h2 {
+  text-align: center;
+  color: var(--heading-color);
+}
+
+.form-group {
+  display: flex;
+  flex-wrap: wrap;
+  margin-bottom: 15px;
+}
+
+.form-group label {
+  flex: 1 0 150px;
+  padding: 5px;
+}
+
+.form-group input,
+.form-group select {
+  flex: 2 0 200px;
+  padding: 5px;
+  margin: 5px 0;
+  background-color: var(--input-background);
+  color: var(--input-text);
+  border: 1px solid var(--input-border);
+}
+
+#calculateBtn,
+#calculateCostBtn,
+#downloadExcelBtn,
+#saveCalculationBtn,
+#loadCalculationBtn {
+  display: block;
+  width: 100%;
+  padding: 10px;
+  background: var(--button-background);
+  border: none;
+  color: var(--button-text);
+  font-size: 16px;
+  cursor: pointer;
+  margin-bottom: 10px;
+  border-radius: 4px;
+}
+
+#calculateBtn:hover,
+#calculateCostBtn:hover,
+#downloadExcelBtn:hover,
+#saveCalculationBtn:hover,
+#loadCalculationBtn:hover {
+  background: var(--button-hover);
+}
+
+.result-section {
+  margin-top: 20px;
+  padding: 15px;
+  background: var(--result-background);
+  font-size: 18px;
+  border-radius: 5px;
+}
+
+.hidden {
+  display: none;
+}
+
+.error-message {
+  color: var(--error-color);
+  margin-top: 10px;
+}
+
+.disclaimer {
+  margin-top: 20px;
+  font-size: 12px;
+  color: var(--text-color);
+  text-align: center;
+}
+
+/* Dark mode variables */
+:root {
+  --background-color: #f4f4f4;
+  --container-background: #fff;
+  --text-color: #000;
+  --heading-color: #333;
+  --input-background: #fff;
+  --input-text: #000;
+  --input-border: #ccc;
+  --button-background: #007bff;
+  --button-text: #fff;
+  --button-hover: #0056b3;
+  --result-background: #e9ecef;
+  --error-color: red;
+}
+
+body.dark-mode {
+  --background-color: #121212;
+  --container-background: #1e1e1e;
+  --text-color: #e0e0e0;
+  --heading-color: #ffffff;
+  --input-background: #2c2c2c;
+  --input-text: #ffffff;
+  --input-border: #555;
+  --button-background: #bb86fc;
+  --button-text: #000;
+  --button-hover: #9f68e8;
+  --result-background: #2c2c2c;
+  --error-color: #cf6679;
+}
+
+.dark-mode-toggle {
+  text-align: right;
+  margin-bottom: 10px;
+}
+
+.dark-mode-toggle label {
+  margin-right: 10px;
+  color: var(--text-color);
+}
+
+@media (max-width: 600px) {
+  .form-group {
+    flex-direction: column;
+  }
+
+  .form-group label,
+  .form-group input,
+  .form-group select {
+    flex: 1 0 100%;
+  }
+
+  #calculateBtn,
+  #calculateCostBtn,
+  #downloadExcelBtn,
+  #saveCalculationBtn,
+  #loadCalculationBtn {
+    font-size: 18px;
+  }
+
+  .dark-mode-toggle {
+    text-align: center;
+  }
+}
