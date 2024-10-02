@@ -1,5 +1,7 @@
-import React, { useRef, useState } from "react";
+import React, { useState } from "react";
 import InputRows from "./InputRows";
+import { v4 as uuidv4 } from "uuid";
+import PasteContentModal from "./modal/PasteContentModal";
 
 const Stocksheet = (props) => {
   const {
@@ -14,6 +16,7 @@ const Stocksheet = (props) => {
     considerGrainDirection,
     handlePaste,
     fileInputRef,
+    parseTableData,
   } = props;
   console.log({ stockSheetRows });
 
@@ -38,10 +41,10 @@ const Stocksheet = (props) => {
       selected: true,
       grainDirection: "vertical",
     };
-    const newRowId = Date.now().toString();
+    const uniqueID = uuidv4();
     const newRow = {
       ...initialRow,
-      id: newRowId,
+      id: uniqueID,
     };
     setStockSheetRows([...stockSheetRows, newRow]);
   };
@@ -99,26 +102,37 @@ const Stocksheet = (props) => {
         handleSelect={handleSelect}
         onPaste={handlePaste}
       />
-      <div className="custom-upload-container">
-        <input
-          type="file"
-          id="sheetFileInput"
-          ref={fileInputRef}
-          name="sheets"
-          style={{ display: "none" }}
-          accept=".xlsx, .xls"
-          onChange={handleFileChange}
-        />
-        <label htmlFor="sheetFileInput" className="custom-upload-button">
-          {selectedFile
-            ? `Selected File: ${selectedFile.name}`
-            : `Choose an Excel file for sheets`}
-        </label>
-        {selectedFile && (
-          <button onClick={handleUpload} className="custom-upload-button">
-            Upload
-          </button>
-        )}
+      <div
+        className="addContainer"
+        style={{
+          display: "flex",
+          gap: "20px",
+          justifyContent: "center",
+          alignItems: "center",
+        }}
+      >
+        <div className="custom-upload-container">
+          <input
+            type="file"
+            id="sheetFileInput"
+            ref={fileInputRef}
+            name="sheets"
+            style={{ display: "none" }}
+            accept=".xlsx, .xls"
+            onChange={handleFileChange}
+          />
+          <label htmlFor="sheetFileInput" className="custom-upload-button">
+            {selectedFile
+              ? `Selected File: ${selectedFile.name}`
+              : `Choose an Excel file for sheets`}
+          </label>
+          {selectedFile && (
+            <button onClick={handleUpload} className="custom-upload-button">
+              Upload
+            </button>
+          )}
+        </div>
+        <PasteContentModal parseTableData={parseTableData} />
       </div>
     </div>
   );

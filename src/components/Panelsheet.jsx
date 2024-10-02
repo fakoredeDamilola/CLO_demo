@@ -1,5 +1,7 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useState } from "react";
 import InputRows from "./InputRows";
+import { v4 as uuidv4 } from "uuid";
+import PasteContentModal from "./modal/PasteContentModal";
 
 const Panelsheet = (props) => {
   const {
@@ -14,6 +16,7 @@ const Panelsheet = (props) => {
     considerGrainDirection,
     handlePaste,
     fileInputRef,
+    parseTableData,
   } = props;
 
   const addRow = () => {
@@ -27,10 +30,10 @@ const Panelsheet = (props) => {
       selected: true,
       grainDirection: "vertical",
     };
-    const newRowId = Date.now().toString();
+    const uniqueID = uuidv4();
     const newRow = {
       ...initialRow,
-      id: newRowId,
+      id: uniqueID,
     };
     setPanelRows([...panelRows, newRow]);
     setChangeIntialUnit(true);
@@ -100,26 +103,37 @@ const Panelsheet = (props) => {
         handleSelect={handleSelect}
         onPaste={handlePaste}
       />
-      <div className="custom-upload-container">
-        <input
-          type="file"
-          id="stockFileInput"
-          ref={fileInputRef}
-          name="panels"
-          style={{ display: "none" }}
-          accept=".xlsx, .xls"
-          onChange={handleFileChange}
-        />
-        <label htmlFor="stockFileInput" className="custom-upload-button">
-          {selectedFile
-            ? `Selected File: ${selectedFile.name}`
-            : `Choose an Excel file for panels`}
-        </label>
-        {selectedFile && (
-          <button onClick={handleUpload} className="custom-upload-button">
-            Upload
-          </button>
-        )}
+      <div
+        className="addContainer"
+        style={{
+          display: "flex",
+          gap: "20px",
+          justifyContent: "center",
+          alignItems: "center",
+        }}
+      >
+        <div className="custom-upload-container">
+          <input
+            type="file"
+            id="stockFileInput"
+            ref={fileInputRef}
+            name="panels"
+            style={{ display: "none" }}
+            accept=".xlsx, .xls"
+            onChange={handleFileChange}
+          />
+          <label htmlFor="stockFileInput" className="custom-upload-button">
+            {selectedFile
+              ? `Selected File: ${selectedFile.name}`
+              : `Choose an Excel file for panels`}
+          </label>
+          {selectedFile && (
+            <button onClick={handleUpload} className="custom-upload-button">
+              Upload
+            </button>
+          )}
+        </div>
+        <PasteContentModal parseTableData={parseTableData} />
       </div>
     </div>
   );

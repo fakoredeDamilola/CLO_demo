@@ -581,14 +581,19 @@ export function displayPanelAndSheetInfo(
 
     newSVGSheet += `</svg>`; // Closing container SVG
 
-    const totalAreaUsedPercentage = (sheetTotalAreaUsed / sheetTotalArea) * 100;
+    const totalAreaUsedPercentage = (
+      (sheetTotalAreaUsed / sheetTotalArea) *
+      100
+    ).toFixed(2);
     const individualSheetDetails = {
       stockSheetWidth: sheetWidth,
       stockSheetHeight: sheetHeight,
       usedArea: sheetTotalAreaUsed,
-      totalAreaUsedPercentage,
+      totalAreaUsedPercentage: `${totalAreaUsedPercentage}%`,
       wastedArea: sheetTotalArea - sheetTotalAreaUsed,
-      totalWastedAreaPercentage: 100 - totalAreaUsedPercentage,
+      totalWastedAreaPercentage: `${(100 - totalAreaUsedPercentage).toFixed(
+        2
+      )}%`,
       panels: sheetData.panels.length,
       // material:s
     };

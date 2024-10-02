@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import jsPDF from "jspdf";
 import { formatToTableData } from "../utils/func";
 
@@ -9,7 +9,13 @@ const GeneratePDF = ({
   additionalFeatures,
   stockRowData,
   notPlacedPanels,
+  generatePDFData,
+  pdfFileName,
+  pdfHeaderText,
 }) => {
+  useEffect(() => {
+    if (generatePDFData) generatePDF();
+  }, [generatePDFData]);
   const generatePDF = async () => {
     const doc = new jsPDF("p", "mm", "a4");
     const pageHeight = doc.internal.pageSize.height;
@@ -22,7 +28,7 @@ const GeneratePDF = ({
     const addHeaderAndFooter = (doc, pageNumber, totalPages) => {
       // Header
       doc.setFontSize(12);
-      doc.text("Cutlist Optimizer Report", margin, 10);
+      doc.text(pdfHeaderText, margin, 10);
       doc.line(margin, 12, pageWidth - margin, 12);
       // Footer
       doc.setFontSize(10);
@@ -87,16 +93,10 @@ const GeneratePDF = ({
           "F"
         ); // Full page width background
         doc.setTextColor(255, 255, 255); // White text
-      } else {
-        // Set text color to default (black)
-        // Black text
       }
-
-      // Set the font and add the title text
       doc.setFontSize(13);
       doc.text(tableTitle, textX, textY);
 
-      // Adjust yOffset after adding the heading
       yOffset += titleHeight + 5; // Additional space after the title
       doc.setTextColor(0, 0, 0);
     };
@@ -182,18 +182,64 @@ const GeneratePDF = ({
 
       yOffset = tableY + (tableData.length + 1) * rowHeight; // Adjust yOffset after the table
     };
+    const drawTableForStockSheet = (dataForTable) => {
+      const actualTableWidth = pageWidth / 2;
+      const tableX = margin;
+      const tableY = yOffset;
+      const rowHeight = 6;
+      let colIndex = 0;
 
-    const svgToImage = (svgString) => {
+      const totalCols = 2;
+      const colWidth = (pageWidth / 2 - 2 * margin) / totalCols;
+
+      // Draw headers
+      doc.setFontSize(10);
+      doc.text("Name", tableX + colWidth * colIndex++, tableY);
+      doc.text("Value", tableX + colWidth * colIndex++, tableY);
+
+      // Draw lines for the table header
+      doc.line(tableX, tableY + 2, actualTableWidth - margin, tableY + 2);
+      console.log({ dataForTable }, Object.entries(dataForTable));
+      doc.setFontSize(8);
+      Object.entries(dataForTable).forEach(([key, value], index) => {
+        let formattedText = `${
+          key
+            .replace(/([A-Z])/g, " $1")
+            .trim()
+            .charAt(0)
+            .toUpperCase() +
+          key
+            .replace(/([A-Z])/g, " $1")
+            .trim()
+            .slice(1)
+        }`;
+        const rowY = tableY + (index + 1) * rowHeight;
+        colIndex = 0;
+
+        doc.text(formattedText, tableX + colWidth * colIndex++, rowY);
+        doc.text(`${value}`, tableX + colWidth * colIndex++, rowY);
+
+        // Draw horizontal line after each row except last row
+        if (index < Object.entries(dataForTable).length - 1) {
+          doc.line(tableX, rowY + 2, actualTableWidth - margin, rowY + 2);
+        }
+      });
+
+      yOffset = tableY + (Object.entries(dataForTable).length + 1) * rowHeight; // Adjust yOffset after the table
+    };
+
+    const svgToImage = (svgString, width, height) => {
       return new Promise((resolve) => {
         const svgBlob = new Blob([svgString], {
           type: "image/svg+xml;charset=utf-8",
         });
         const url = URL.createObjectURL(svgBlob);
         const img = new Image();
+        console.log({ width, height, wIMG: img.width, hIMG: img.height });
         img.onload = () => {
           const canvas = document.createElement("canvas");
-          canvas.width = img.width;
-          canvas.height = img.height;
+          canvas.width = width;
+          canvas.height = height;
           const context = canvas.getContext("2d");
           context.drawImage(img, 0, 0);
           URL.revokeObjectURL(url); // Clean up the object URL
@@ -215,8 +261,8 @@ const GeneratePDF = ({
     const addImageStocksheetToPDF = async (svgSheetDetails) => {
       for (const { newSVGSheet: svg, sheetInfo } of svgSheetDetails) {
         console.log({ svg, sheetInfo });
-        const imgData = await svgToImage(svg);
         const { width: svgWidth, height: svgHeight } = getSvgDimensions(svg);
+        const imgData = await svgToImage(svg, svgWidth, svgHeight);
 
         let imgWidth = pageWidth - 20;
         let imgHeight = (svgHeight / svgWidth) * imgWidth;
@@ -228,12 +274,10 @@ const GeneratePDF = ({
 
         doc.addImage(imgData, "PNG", 10, yOffset + 10, imgWidth, imgHeight);
         yOffset += imgHeight + 20;
-        addStocksheetDetails(sheetInfo);
+        drawTableForStockSheet(sheetInfo);
       }
     };
-
-    const addStockSheetDetails = (sheetInfo) => {};
-
+    doc.setFontSize(10);
     generateGlobalData(globalSheetStatistics);
     drawTable("Panel Details", panelRowData, additionalFeatures);
     drawTable("Stocksheet Details", stockRowData, additionalFeatures);
@@ -259,40 +303,13 @@ const GeneratePDF = ({
       addHeaderAndFooter(doc, page, totalPages);
     }
 
-    // doc.save("cutlist_optimizer.pdf");
-    const pdfBlob = doc.output("blob");
-    const pdfUrl = URL.createObjectURL(pdfBlob);
-    window.open(pdfUrl); // Open in a new tab
+    doc.save(pdfFileName + ".pdf");
+    // const pdfBlob = doc.output("blob");
+    // const pdfUrl = URL.createObjectURL(pdfBlob);
+    // window.open(pdfUrl); // Open in a new tab
   };
 
-  return (
-    <div
-      style={{
-        display: "flex",
-        justifyContent: "center",
-        alignItems: "center",
-        margin: "20px 0",
-      }}
-    >
-      <button
-        style={{
-          padding: "10px 20px",
-          backgroundColor: "#007bff",
-          color: "white",
-          cursor: "pointer",
-          borderRadius: "4px",
-          fontSize: "16px",
-          fontWeight: "bold",
-          marginRight: "10px",
-          border: "none",
-          width: "300px",
-        }}
-        onClick={generatePDF}
-      >
-        Download PDF
-      </button>
-    </div>
-  );
+  return <></>;
 };
 
 export default GeneratePDF;

@@ -135,7 +135,7 @@ const InputRows = (props) => {
                 <tr>
                   <td>
                     <input
-                      type="text"
+                      type="number"
                       name="length"
                       value={length}
                       onChange={(e) => handleDataChange(e, id)}
@@ -146,7 +146,7 @@ const InputRows = (props) => {
                   </td>
                   <td>
                     <input
-                      type="text"
+                      type="number"
                       name="width"
                       value={width}
                       onChange={(e) => handleDataChange(e, id)}
@@ -158,7 +158,7 @@ const InputRows = (props) => {
 
                   <td>
                     <input
-                      type="text"
+                      type="number"
                       name="quantity"
                       value={quantity}
                       onChange={(e) => handleDataChange(e, id)}

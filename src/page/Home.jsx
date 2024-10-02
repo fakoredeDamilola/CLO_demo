@@ -18,6 +18,8 @@ import { useDispatch } from "react-redux";
 import { addMaterial } from "../store/Material.slice";
 import MetalWeightCalculator from "../components/MetalWeightCalculator";
 import GeneratePDF from "../components/GeneratePDF";
+import PDFSettingModal from "../components/modal/PDFSettingModal";
+import { autoGenerateName, handleCheckFields } from "../utils/func";
 
 const Home = () => {
   const unitOptions = [
@@ -27,7 +29,6 @@ const Home = () => {
     { value: "mm", label: "Millimeters" },
   ];
 
-  const [totalCutLength, setTotalCutLength] = useState(0);
   const [loading, setLoading] = useState(false);
   const [usedStockSheets, setUsedStockSheets] = useState("");
   const [panelRows, setPanelRows] = useState([
@@ -97,6 +98,10 @@ const Home = () => {
   const [svgSheetArray, setSvgSheetArray] = useState([]);
   const [globalSheetStatistics, setGlobalSheetStatistics] = useState({});
   const [notPlacePanels, setNotPlacePanels] = useState([]);
+  const [pdfFileName, setPdfFileName] = useState("");
+  const [pdfHeaderText, setPdfHeaderText] = useState("");
+  const [showPdfModal, setShowPdfModal] = useState(false);
+  const [generatePDFData, setGeneratePDFData] = useState(false);
   const dispatch = useDispatch();
   const fileInputRef = useRef(null);
 
@@ -106,6 +111,26 @@ const Home = () => {
   useEffect(() => {
     setChangeIntialUnit(false);
   }, []);
+
+  const parseTableData = (tableData, type) => {
+    const rows = tableData.trim().split("\n");
+    const headers = rows[0].split(/\s+/); // Split headers based on spaces
+    const data = rows.slice(1).map((row) => {
+      const values = row.split(/\s+/); // Split row data by spaces
+      const obj = {};
+      headers.forEach((header, index) => {
+        obj[header] = values[index] || null; // Mapping values to headers
+      });
+      return obj;
+    });
+    const dataForTable = handleCheckFields(data);
+
+    if (type === "sheets") {
+      setStockSheetRows(dataForTable);
+    } else {
+      setPanelRows(dataForTable);
+    }
+  };
 
   const handleChange = (e, type) => {
     const file = e.target.files[0];
@@ -226,6 +251,13 @@ const Home = () => {
     return data.filter((data) => data.selected);
   };
 
+  const openPDFOptionSettings = () => {
+    const PDFFileName = autoGenerateName("Alunex Optimizer");
+    setPdfFileName(PDFFileName);
+    setPdfHeaderText("Alunex Optimizer");
+    setShowPdfModal(true);
+  };
+
   const optimizeDataAndResult = () => {
     setResultReady(false);
     const filteredStockSheet = filterUnusedData(stockSheetRows);
@@ -298,8 +330,10 @@ const Home = () => {
                   addMaterialToSheets={addMaterialToSheets}
                   onPaste={handlePaste}
                   fileInputRef={fileInputRef}
+                  parseTableData={(data) => parseTableData(data, "sheets")}
                   considerGrainDirection={considerGrainDirection}
                 />
+
                 <div style={{ margin: "50px 0" }}>
                   <Panelsheet
                     panelRows={panelRows}
@@ -312,6 +346,7 @@ const Home = () => {
                     addMaterialToSheets={addMaterialToSheets}
                     onPaste={handlePaste}
                     fileInputRef={fileInputRef}
+                    parseTableData={(data) => parseTableData(data, "panels")}
                     considerGrainDirection={considerGrainDirection}
                   />
                 </div>
@@ -482,14 +517,37 @@ const Home = () => {
                 ></canvas>
               </div>
               {resultReady && (
-                <GeneratePDF
-                  globalSheetStatistics={globalSheetStatistics}
-                  svgSheetArray={svgSheetArray}
-                  panelRowData={panelRows}
-                  stockRowData={stockSheetRows}
-                  additionalFeatures={additionalFeatures}
-                  notPlacedPanels={notPlacePanels}
-                />
+                <>
+                  <button
+                    style={{
+                      padding: "10px 20px",
+                      backgroundColor: "#007bff",
+                      color: "white",
+                      cursor: "pointer",
+                      borderRadius: "4px",
+                      fontSize: "16px",
+                      fontWeight: "bold",
+                      marginRight: "10px",
+                      border: "none",
+                      width: "300px",
+                    }}
+                    // onClick={generatePDF}
+                    onClick={openPDFOptionSettings}
+                  >
+                    Download PDF
+                  </button>
+                  <GeneratePDF
+                    globalSheetStatistics={globalSheetStatistics}
+                    svgSheetArray={svgSheetArray}
+                    panelRowData={panelRows}
+                    stockRowData={stockSheetRows}
+                    additionalFeatures={additionalFeatures}
+                    notPlacedPanels={notPlacePanels}
+                    generatePDFData={generatePDFData}
+                    pdfFileName={pdfFileName}
+                    pdfHeaderText={pdfHeaderText}
+                  />
+                </>
               )}
               {optimizationCompleted && (
                 <div>
@@ -526,6 +584,15 @@ const Home = () => {
         show={showErrorModal}
         onClose={handleCloseModal}
         messages={errors}
+      />
+      <PDFSettingModal
+        showPdfModal={showPdfModal}
+        setShowPdfModal={setShowPdfModal}
+        pdfFileName={pdfFileName}
+        setPdfFileName={setPdfFileName}
+        pdfHeaderText={pdfHeaderText}
+        setPdfHeaderText={setPdfHeaderText}
+        setGeneratePDFData={setGeneratePDFData}
       />
     </div>
   );
