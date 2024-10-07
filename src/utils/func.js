@@ -38,3 +38,35 @@ const ensureFields = (data) => {
   // Merge defaultFields with data, adding missing fields
   return { ...defaultFields, ...data };
 };
+
+export function getUniqueId() {
+  return uuidv4();
+}
+
+export function getPanelDetails(panels) {
+  const result = [];
+
+  panels.forEach((panel) => {
+    const existingGroup = result.find(
+      (group) =>
+        group.panelGroup === panel.panelGroup &&
+        group.length === panel.length &&
+        group.width === panel.width
+    );
+
+    if (existingGroup) {
+      // Update the existing group with new quantities, lengths, and widths
+      existingGroup.quantity += 1;
+    } else {
+      // Add a new group for the panelGroup
+      result.push({
+        panelGroup: panel.panelGroup,
+        quantity: 1,
+        length: panel.length,
+        width: panel.width,
+      });
+    }
+  });
+
+  return result;
+}

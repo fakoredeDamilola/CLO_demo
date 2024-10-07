@@ -22,7 +22,8 @@ const materialSlice = createSlice({
     },
     addMaterial(state, action) {
       if (
-        state.materials.find((material) => material.name === action.payload)
+        state.materials.find((material) => material.name === action.payload) ||
+        !action.payload
       ) {
         return;
       } else {

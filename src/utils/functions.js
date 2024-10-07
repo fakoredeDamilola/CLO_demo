@@ -1,4 +1,5 @@
 import { grainDirections } from "./constants";
+import { getPanelDetails } from "./func";
 
 function generateRandomString(length) {
   const characters =
@@ -44,9 +45,6 @@ export function displayPanelAndSheetInfo(
     additionalFeatures;
 
   console.clear();
-  //   console.log(sheetTable);
-  //   console.log(panelTable);
-  // console.log({ considerGrainDirection, addMaterialToSheets, panelLabel });
 
   panelTable.forEach((row, index) => {
     if (index + 1 !== 0) {
@@ -462,11 +460,7 @@ export function displayPanelAndSheetInfo(
       const panelWidthReduced = scaledWidth / factorForStockSheet.width;
       const positionX = scaledX / factorForStockSheet.width;
       const positionY = scaledY / factorForStockSheet.height;
-      console.log({
-        panelLenghtReduced,
-        panelWidthReduced,
-        factorForStockSheet,
-      });
+
       if (panelLabel) {
         newSVGSheet += `<rect x="${positionX}" y="${positionY}" width="${panelWidthReduced}" height="${panelLenghtReduced}" fill="${
           panel.panelColor
@@ -605,6 +599,7 @@ export function displayPanelAndSheetInfo(
     svgSheetArray.push({
       newSVGSheet,
       sheetInfo: { ...individualSheetDetails, sheetCount },
+      panelDetails: getPanelDetails(sheetData.panels),
     });
   }); // End of uniqueSheets.forEach
 
@@ -726,15 +721,16 @@ export function checkForErrors(
     panelLabel,
     "panel"
   );
-  console.log([...response, ...sheetError, ...panelError]);
   return [...response, ...sheetError, ...panelError];
 }
 
 export function checkForErrorInExcelFile(data) {
   const errorResponse = [];
-
   for (let i = 0; i < data.length; i++) {
-    if (!grainDirections.includes(data[i].grainDirection)) {
+    if (
+      !grainDirections.includes(data[i].grainDirection) &&
+      data[i].grainDirection
+    ) {
       errorResponse.push({
         type: "error",
         message: `grainDirection in file upload ${data[i].grainDirection} not found`,

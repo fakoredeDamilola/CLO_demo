@@ -19,7 +19,11 @@ import { addMaterial } from "../store/Material.slice";
 import MetalWeightCalculator from "../components/MetalWeightCalculator";
 import GeneratePDF from "../components/GeneratePDF";
 import PDFSettingModal from "../components/modal/PDFSettingModal";
-import { autoGenerateName, handleCheckFields } from "../utils/func";
+import {
+  autoGenerateName,
+  getUniqueId,
+  handleCheckFields,
+} from "../utils/func";
 
 const Home = () => {
   const unitOptions = [
@@ -31,6 +35,7 @@ const Home = () => {
 
   const [loading, setLoading] = useState(false);
   const [usedStockSheets, setUsedStockSheets] = useState("");
+  const [uploadFileSpinner, setUploadFileSpinner] = useState(false);
   const [panelRows, setPanelRows] = useState([
     {
       id: 1,
@@ -48,7 +53,7 @@ const Home = () => {
       length: "100",
       quantity: "100",
       label: "",
-      width: "500",
+      width: "130",
       material: "",
       result: "50",
       grainDirection: "horizontal",
@@ -59,7 +64,7 @@ const Home = () => {
       length: "250",
       quantity: "50",
       label: "",
-      width: "700",
+      width: "70",
       material: "",
       result: "50",
       grainDirection: "horizontal",
@@ -69,9 +74,42 @@ const Home = () => {
   const [stockSheetRows, setStockSheetRows] = useState([
     {
       id: 1,
-      length: "2440",
-      quantity: "7",
-      width: "1200",
+      length: "700",
+      quantity: "2",
+      width: "500",
+      label: "",
+      material: "",
+      result: "",
+      selected: true,
+      grainDirection: "horizontal",
+    },
+    {
+      id: 2,
+      length: "300",
+      quantity: "1",
+      width: "400",
+      label: "",
+      material: "",
+      result: "",
+      selected: true,
+      grainDirection: "horizontal",
+    },
+    {
+      id: 3,
+      length: "700",
+      quantity: "1",
+      width: "500",
+      label: "",
+      material: "",
+      result: "",
+      selected: true,
+      grainDirection: "horizontal",
+    },
+    {
+      id: 4,
+      length: "800",
+      quantity: "2",
+      width: "600",
       label: "",
       material: "",
       result: "",
@@ -102,6 +140,7 @@ const Home = () => {
   const [pdfHeaderText, setPdfHeaderText] = useState("");
   const [showPdfModal, setShowPdfModal] = useState(false);
   const [generatePDFData, setGeneratePDFData] = useState(false);
+  const [parsedDataFromFile, setParsedDataFromFile] = useState([]);
   const dispatch = useDispatch();
   const fileInputRef = useRef(null);
 
@@ -111,6 +150,14 @@ const Home = () => {
   useEffect(() => {
     setChangeIntialUnit(false);
   }, []);
+
+  useEffect(() => {
+    if (stockSheetRows.length > 0 || panelRows.length > 0) {
+      parsedDataFromFile.forEach((item) => {
+        dispatch(addMaterial(item.material));
+      });
+    }
+  }, [stockSheetRows, panelRows]);
 
   const parseTableData = (tableData, type) => {
     const rows = tableData.trim().split("\n");
@@ -126,9 +173,9 @@ const Home = () => {
     const dataForTable = handleCheckFields(data);
 
     if (type === "sheets") {
-      setStockSheetRows(dataForTable);
+      setStockSheetRows({ ...stockSheetRows, ...dataForTable });
     } else {
-      setPanelRows(dataForTable);
+      setPanelRows({ ...panelRows, ...dataForTable });
     }
   };
 
@@ -142,85 +189,88 @@ const Home = () => {
   };
 
   const handleUpload = (id) => {
-    const selectedFile =
-      id === "panels" ? selectedPanelFile : selectedSheetFile;
-    const dataRows = id === "panels" ? panelRows : stockSheetRows;
-    console.log({ id, selectedFile });
+    try {
+      setUploadFileSpinner(true);
+      const selectedFile =
+        id === "panels" ? selectedPanelFile : selectedSheetFile;
+      const dataRows = id === "panels" ? panelRows : stockSheetRows;
+      console.log({ id, selectedFile });
 
-    if (selectedFile) {
-      if (
-        selectedFile.name.endsWith(".xls") ||
-        selectedFile.name.endsWith(".xlsx")
-      ) {
-        const reader = new FileReader();
-        reader.onload = (e) => {
-          const binaryData = e.target.result;
-          const workbook = read(binaryData, { type: "binary" });
-          const sheetName = workbook.SheetNames[0];
-          const sheet = workbook.Sheets[sheetName];
-          const sheetData = utils.sheet_to_json(sheet, { header: 1 });
+      if (selectedFile) {
+        if (
+          selectedFile.name.endsWith(".xls") ||
+          selectedFile.name.endsWith(".xlsx")
+        ) {
+          const reader = new FileReader();
+          reader.onload = (e) => {
+            const binaryData = e.target.result;
+            const workbook = read(binaryData, { type: "binary" });
+            const sheetName = workbook.SheetNames[0];
+            const sheet = workbook.Sheets[sheetName];
+            const sheetData = utils.sheet_to_json(sheet, { header: 1 });
 
-          const headers = sheetData[0];
-          const parsedData = [];
+            const headers = sheetData[0];
+            const parsedData = [];
 
-          for (let i = 1; i < sheetData.length; i++) {
-            const row = sheetData[i];
-            const rowData = {};
-            for (let j = 0; j < headers.length; j++) {
-              rowData[headers[j]] = row[j];
+            for (let i = 1; i < sheetData.length; i++) {
+              const row = sheetData[i];
+
+              const isRowEmpty = row.every((cell) => !cell);
+
+              if (isRowEmpty) {
+                break;
+              }
+
+              const rowData = {};
+              for (let j = 0; j < headers.length; j++) {
+                rowData[headers[j]] = row[j];
+              }
+
+              parsedData.push(rowData);
             }
-            parsedData.push(rowData);
-          }
-
-          const errors = checkForErrorInExcelFile(parsedData);
-          console.log({ errors });
-          if (errors.length > 0) {
-            setErrors(errors);
-            setShowErrorModal(true);
-            return;
-          } else {
-            addDataToMaterialDropdown(parsedData);
-            const dataNeeded = parsedData.map((data) => ({
-              length: data.length ?? "",
-              quantity: data.quantity ?? "",
-              label: data.label ?? "",
-              width: data.width ?? "",
-              id: parseInt(Math.random() * data.length),
-              material: data.material ?? "",
-              grainDirection: data.grainDirection ?? "",
-              selected: true,
-              result: data.result ?? "",
-            }));
-
-            const newRows = dataRows
-              .concat(dataNeeded)
-              .filter((data) => data.length !== "");
-            console.log({ newRows });
-            if (id === "sheets") {
-              setStockSheetRows(newRows);
+            const errors = checkForErrorInExcelFile(parsedData);
+            console.log({ errors });
+            if (errors.length > 0) {
+              setErrors(errors);
+              setShowErrorModal(true);
+              return;
             } else {
-              setPanelRows(newRows);
-            }
+              const dataNeeded = parsedData.map((data) => ({
+                id: getUniqueId(),
+                length: data.length ? `${data.length}` : "",
+                quantity: data.quantity ? `${data.quantity}` : "",
+                label: data.label ?? "",
+                width: data.width ? `${data.width}` : "",
+                material: data.material ?? "",
+                grainDirection: data.grainDirection ?? "horizontal",
+                selected: true,
+                result: data.result ? `${data.result}` : "",
+              }));
+              const newRows = [...dataRows, ...dataNeeded];
+              setParsedDataFromFile(dataNeeded);
+              if (id === "sheets") {
+                setStockSheetRows(newRows);
+              } else {
+                setPanelRows(newRows);
+              }
 
-            // Reset file state and input element
-            setSelectedPanelFile(null);
-            setSelectedSheetFile(null);
-            if (fileInputRef.current) {
-              fileInputRef.current.value = ""; // This clears the file input element
+              setUploadFileSpinner(false);
+              setParsedDataFromFile([]);
+              setSelectedPanelFile(null);
+              setSelectedSheetFile(null);
+              if (fileInputRef.current) {
+                fileInputRef.current.value = ""; // This clears the file input element
+              }
             }
-          }
-        };
-        reader.readAsBinaryString(selectedFile);
-      } else {
-        console.error("Uploaded file is not an Excel file");
+          };
+          reader.readAsBinaryString(selectedFile);
+        } else {
+          console.error("Uploaded file is not an Excel file");
+        }
       }
+    } catch (e) {
+      console.log({ e });
     }
-  };
-
-  const addDataToMaterialDropdown = (data) => {
-    data.forEach((item) => {
-      dispatch(addMaterial(item.material));
-    });
   };
 
   const handleUnitInput = (event) => {
@@ -331,6 +381,8 @@ const Home = () => {
                   onPaste={handlePaste}
                   fileInputRef={fileInputRef}
                   parseTableData={(data) => parseTableData(data, "sheets")}
+                  uploadFileSpinner={uploadFileSpinner}
+                  setUploadFileSpinner={setUploadFileSpinner}
                   considerGrainDirection={considerGrainDirection}
                 />
 
@@ -346,6 +398,8 @@ const Home = () => {
                     addMaterialToSheets={addMaterialToSheets}
                     onPaste={handlePaste}
                     fileInputRef={fileInputRef}
+                    uploadFileSpinner={uploadFileSpinner}
+                    setUploadFileSpinner={setUploadFileSpinner}
                     parseTableData={(data) => parseTableData(data, "panels")}
                     considerGrainDirection={considerGrainDirection}
                   />
@@ -546,6 +600,7 @@ const Home = () => {
                     generatePDFData={generatePDFData}
                     pdfFileName={pdfFileName}
                     pdfHeaderText={pdfHeaderText}
+                    setGeneratePDFData={setGeneratePDFData}
                   />
                 </>
               )}

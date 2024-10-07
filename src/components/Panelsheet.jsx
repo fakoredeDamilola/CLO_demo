@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import InputRows from "./InputRows";
 import { v4 as uuidv4 } from "uuid";
 import PasteContentModal from "./modal/PasteContentModal";
+import CustomUploadFile from "./custom/CustomUploadFile";
 
 const Panelsheet = (props) => {
   const {
@@ -17,6 +18,8 @@ const Panelsheet = (props) => {
     handlePaste,
     fileInputRef,
     parseTableData,
+    uploadFileSpinner,
+    setUploadFileSpinner,
   } = props;
 
   const addRow = () => {
@@ -112,27 +115,15 @@ const Panelsheet = (props) => {
           alignItems: "center",
         }}
       >
-        <div className="custom-upload-container">
-          <input
-            type="file"
-            id="stockFileInput"
-            ref={fileInputRef}
-            name="panels"
-            style={{ display: "none" }}
-            accept=".xlsx, .xls"
-            onChange={handleFileChange}
-          />
-          <label htmlFor="stockFileInput" className="custom-upload-button">
-            {selectedFile
-              ? `Selected File: ${selectedFile.name}`
-              : `Choose an Excel file for panels`}
-          </label>
-          {selectedFile && (
-            <button onClick={handleUpload} className="custom-upload-button">
-              Upload
-            </button>
-          )}
-        </div>
+        <CustomUploadFile
+          handleFileChange={handleFileChange}
+          handleUpload={handleUpload}
+          fileInputRef={fileInputRef}
+          selectedFile={selectedFile}
+          uploadFileSpinner={uploadFileSpinner}
+          setUploadFileSpinner={setUploadFileSpinner}
+          type="panels"
+        />
         <PasteContentModal parseTableData={parseTableData} />
       </div>
     </div>

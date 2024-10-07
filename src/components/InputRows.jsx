@@ -169,13 +169,6 @@ const InputRows = (props) => {
                   </td>
                   {addMaterialToSheets && (
                     <td>
-                      {/* <input
-                        name="material"
-                        value={material}
-                        onChange={(e) => handleDataChange(e, id)}
-                        onFocus={handleInputFocus}
-                        onBlur={handleInputBlur}
-                      /> */}
                       {materials && (
                         <select
                           name="material"

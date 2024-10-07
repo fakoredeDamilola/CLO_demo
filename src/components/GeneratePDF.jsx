@@ -10,12 +10,21 @@ const GeneratePDF = ({
   stockRowData,
   notPlacedPanels,
   generatePDFData,
+
+  setGeneratePDFData,
   pdfFileName,
   pdfHeaderText,
 }) => {
   useEffect(() => {
-    if (generatePDFData) generatePDF();
+    if (generatePDFData) {
+      generatePDF();
+      setGeneratePDFData(false);
+    }
+    return () => {
+      setGeneratePDFData(false);
+    };
   }, [generatePDFData]);
+
   const generatePDF = async () => {
     const doc = new jsPDF("p", "mm", "a4");
     const pageHeight = doc.internal.pageSize.height;
@@ -34,6 +43,17 @@ const GeneratePDF = ({
       doc.setFontSize(10);
       doc.line(margin, pageHeight - 15, pageWidth - margin, pageHeight - 15);
       doc.text(`Page ${pageNumber} of ${totalPages}`, margin, pageHeight - 10);
+    };
+
+    const checkSpaceAndMovePage = (requiredHeight) => {
+      const footerBuffer = 40; // Distance from the footer
+      const availableSpace = pageHeight - yOffset - footerBuffer;
+
+      // Check if there is enough space
+      if (requiredHeight > availableSpace) {
+        doc.addPage();
+        yOffset = 20; // Reset yOffset for the new page
+      }
     };
 
     const renderColumn = (column, xOffset) => {
@@ -56,8 +76,10 @@ const GeneratePDF = ({
         }
         // Use doc.splitTextToSize to handle text wrapping
         const splitText = doc.splitTextToSize(formattedText, colWidth - 5);
-
+        const textHeight = splitText.length * lineHeight;
+        checkSpaceAndMovePage(textHeight);
         doc.text(splitText, xOffset, yOffset + index * lineHeight);
+        yOffset += (splitText.length - 1) * 2; // Adjust yOffset for wrapped text
       });
       return column.length * lineHeight;
     };
@@ -84,7 +106,6 @@ const GeneratePDF = ({
       if (withBackground) {
         doc.setFillColor(139, 0, 0);
 
-        // Draw the background rectangle for the full width
         doc.rect(
           margin,
           yOffset - paddingY,
@@ -99,6 +120,21 @@ const GeneratePDF = ({
 
       yOffset += titleHeight + 5; // Additional space after the title
       doc.setTextColor(0, 0, 0);
+    };
+
+    const addColorToTableRowHeader = () => {
+      doc.setFillColor(211, 211, 211); // Light gray background
+      doc.rect(
+        margin,
+        yOffset - paddingY,
+        pageWidth - 2 * margin,
+        titleHeight + 2 * paddingY,
+        "F"
+      );
+      doc.setFontSize(13);
+      doc.setFont("helvetica", "bold");
+      doc.text(tableTitle, textX, textY);
+      doc.setFont("helvetica", "normal");
     };
 
     const drawTable = (tableTitle, dataForTable, features, type) => {
@@ -181,14 +217,63 @@ const GeneratePDF = ({
       });
 
       yOffset = tableY + (tableData.length + 1) * rowHeight; // Adjust yOffset after the table
+
+      if (yOffset + 40 > pageHeight) {
+        doc.addPage();
+        yOffset = 20;
+      }
     };
+
+    const drawTableForPanelDetails = (panelDetails) => {
+      const tableX = 7;
+      const tableY = yOffset;
+      const rowHeight = 7;
+      let colIndex = 2;
+      const totalCols = 2;
+      const colWidth = (pageWidth / 2 - 2 * margin) / totalCols + 5;
+      console.log({ colWidth, margin, pageWidth });
+      doc.setFontSize(10);
+      doc.text("Panel", tableX + colWidth * colIndex++, tableY);
+      doc.text("Quantity", tableX + colWidth * colIndex++, tableY);
+
+      doc.line(
+        tableX + colWidth * 2,
+        tableY + 2,
+        pageWidth - margin,
+        tableY + 2
+      );
+      doc.setFontSize(8);
+      panelDetails.forEach((row, index) => {
+        const rowY = tableY + (index + 1) * rowHeight;
+        colIndex = 2;
+
+        doc.text(
+          `${row.length} X ${row.width}`,
+          tableX + colWidth * colIndex++,
+          rowY
+        );
+        doc.text(`${row.quantity}`, tableX + colWidth * colIndex++, rowY);
+
+        // Draw horizontal line after each row
+        if (index < panelDetails.length - 1) {
+          doc.line(
+            tableX + colWidth * 2,
+            rowY + 2,
+            pageWidth - margin,
+            rowY + 2
+          );
+        }
+      });
+      yOffset = tableY + (panelDetails.length + 1) * rowHeight;
+    };
+
     const drawTableForStockSheet = (dataForTable) => {
       const actualTableWidth = pageWidth / 2;
       const tableX = margin;
-      const tableY = yOffset;
+      let tableY = yOffset;
       const rowHeight = 6;
       let colIndex = 0;
-
+      // checkSpaceAndMovePage(tableHeight + 20);
       const totalCols = 2;
       const colWidth = (pageWidth / 2 - 2 * margin) / totalCols;
 
@@ -199,7 +284,6 @@ const GeneratePDF = ({
 
       // Draw lines for the table header
       doc.line(tableX, tableY + 2, actualTableWidth - margin, tableY + 2);
-      console.log({ dataForTable }, Object.entries(dataForTable));
       doc.setFontSize(8);
       Object.entries(dataForTable).forEach(([key, value], index) => {
         let formattedText = `${
@@ -225,7 +309,7 @@ const GeneratePDF = ({
         }
       });
 
-      yOffset = tableY + (Object.entries(dataForTable).length + 1) * rowHeight; // Adjust yOffset after the table
+      // Adjust yOffset after the table
     };
 
     const svgToImage = (svgString, width, height) => {
@@ -235,15 +319,16 @@ const GeneratePDF = ({
         });
         const url = URL.createObjectURL(svgBlob);
         const img = new Image();
-        console.log({ width, height, wIMG: img.width, hIMG: img.height });
         img.onload = () => {
+          const scaleFactor = 2;
           const canvas = document.createElement("canvas");
-          canvas.width = width;
-          canvas.height = height;
+          canvas.width = width * scaleFactor;
+          canvas.height = height * scaleFactor;
           const context = canvas.getContext("2d");
-          context.drawImage(img, 0, 0);
-          URL.revokeObjectURL(url); // Clean up the object URL
-          resolve(canvas.toDataURL("image/png")); // Resolve the image as PNG
+          context.scale(scaleFactor, scaleFactor);
+          context.drawImage(img, 0, 0, width, height);
+          URL.revokeObjectURL(url);
+          resolve(canvas.toDataURL("image/png"));
         };
         img.src = url;
       });
@@ -259,8 +344,11 @@ const GeneratePDF = ({
     };
 
     const addImageStocksheetToPDF = async (svgSheetDetails) => {
-      for (const { newSVGSheet: svg, sheetInfo } of svgSheetDetails) {
-        console.log({ svg, sheetInfo });
+      for (const {
+        newSVGSheet: svg,
+        panelDetails,
+        sheetInfo,
+      } of svgSheetDetails) {
         const { width: svgWidth, height: svgHeight } = getSvgDimensions(svg);
         const imgData = await svgToImage(svg, svgWidth, svgHeight);
 
@@ -275,6 +363,9 @@ const GeneratePDF = ({
         doc.addImage(imgData, "PNG", 10, yOffset + 10, imgWidth, imgHeight);
         yOffset += imgHeight + 20;
         drawTableForStockSheet(sheetInfo);
+
+        drawTableForPanelDetails(panelDetails);
+        yOffset = yOffset + (Object.entries(sheetInfo).length + 1) * 6;
       }
     };
     doc.setFontSize(10);
@@ -303,10 +394,10 @@ const GeneratePDF = ({
       addHeaderAndFooter(doc, page, totalPages);
     }
 
-    doc.save(pdfFileName + ".pdf");
-    // const pdfBlob = doc.output("blob");
-    // const pdfUrl = URL.createObjectURL(pdfBlob);
-    // window.open(pdfUrl); // Open in a new tab
+    // doc.save(pdfFileName + ".pdf");
+    const pdfBlob = doc.output("blob");
+    const pdfUrl = URL.createObjectURL(pdfBlob);
+    window.open(pdfUrl); // Open in a new tab
   };
 
   return <></>;

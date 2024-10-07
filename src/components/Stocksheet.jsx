@@ -1,7 +1,8 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import InputRows from "./InputRows";
 import { v4 as uuidv4 } from "uuid";
 import PasteContentModal from "./modal/PasteContentModal";
+import CustomUploadFile from "./custom/CustomUploadFile";
 
 const Stocksheet = (props) => {
   const {
@@ -17,7 +18,12 @@ const Stocksheet = (props) => {
     handlePaste,
     fileInputRef,
     parseTableData,
+    uploadFileSpinner,
+    setUploadFileSpinner,
   } = props;
+  useEffect(() => {
+    console.log("stock sheet component");
+  }, [stockSheetRows]);
   console.log({ stockSheetRows });
 
   const [isInputFocused, setIsInputFocused] = useState(false);
@@ -111,27 +117,15 @@ const Stocksheet = (props) => {
           alignItems: "center",
         }}
       >
-        <div className="custom-upload-container">
-          <input
-            type="file"
-            id="sheetFileInput"
-            ref={fileInputRef}
-            name="sheets"
-            style={{ display: "none" }}
-            accept=".xlsx, .xls"
-            onChange={handleFileChange}
-          />
-          <label htmlFor="sheetFileInput" className="custom-upload-button">
-            {selectedFile
-              ? `Selected File: ${selectedFile.name}`
-              : `Choose an Excel file for sheets`}
-          </label>
-          {selectedFile && (
-            <button onClick={handleUpload} className="custom-upload-button">
-              Upload
-            </button>
-          )}
-        </div>
+        <CustomUploadFile
+          handleFileChange={handleFileChange}
+          handleUpload={handleUpload}
+          fileInputRef={fileInputRef}
+          selectedFile={selectedFile}
+          uploadFileSpinner={uploadFileSpinner}
+          setUploadFileSpinner={setUploadFileSpinner}
+          type="sheets"
+        />
         <PasteContentModal parseTableData={parseTableData} />
       </div>
     </div>

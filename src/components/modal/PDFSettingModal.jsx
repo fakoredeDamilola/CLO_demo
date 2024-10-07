@@ -1,5 +1,6 @@
 import React from "react";
 import { FormControl, InputGroup, Modal, Button } from "react-bootstrap";
+import Footer from "../Footer";
 
 const PDFSettingModal = ({
   showPdfModal,
@@ -43,6 +44,7 @@ const PDFSettingModal = ({
           />
         </InputGroup>
       </Modal.Body>
+      <Footer />
       <Modal.Footer>
         <Button variant="outline-secondary" onClick={onClose}>
           Cancel
