@@ -1,5 +1,4 @@
 import { grainDirections } from "./constants";
-import { getPanelDetails } from "./func";
 
 function generateRandomString(length) {
   const characters =
@@ -45,6 +44,9 @@ export function displayPanelAndSheetInfo(
     additionalFeatures;
 
   console.clear();
+  //   console.log(sheetTable);
+  //   console.log(panelTable);
+  // console.log({ considerGrainDirection, addMaterialToSheets, panelLabel });
 
   panelTable.forEach((row, index) => {
     if (index + 1 !== 0) {
@@ -276,6 +278,7 @@ export function displayPanelAndSheetInfo(
   });
   let totalCutDetails = 0;
   let totalCutLength = 0;
+  let addedUnsedLenght = 0;
   let notPlacedPanel = [];
   panelData.forEach((panel) => {
     if (panel.placed === true) {
@@ -460,7 +463,11 @@ export function displayPanelAndSheetInfo(
       const panelWidthReduced = scaledWidth / factorForStockSheet.width;
       const positionX = scaledX / factorForStockSheet.width;
       const positionY = scaledY / factorForStockSheet.height;
-
+      console.log({
+        panelLenghtReduced,
+        panelWidthReduced,
+        factorForStockSheet,
+      });
       if (panelLabel) {
         newSVGSheet += `<rect x="${positionX}" y="${positionY}" width="${panelWidthReduced}" height="${panelLenghtReduced}" fill="${
           panel.panelColor
@@ -526,6 +533,8 @@ export function displayPanelAndSheetInfo(
           // Draw the unused area
 
           count_cut++;
+          addedUnsedLenght += height;
+
           newSVGSheet += `<rect x="${unusedXPosition}" y="${unusedYPosition}" width="${unusedSheetWidthReduced}" height="${unusedSheetHeightReduced}" fill="lightgrey" opacity="0.5" stroke="blue" stroke-width="1">
             <title>Unused Area ${count_cut}: (W:${width} x H:${height}) x="${x}" y="${y}"</title>
           </rect>`;
@@ -599,7 +608,6 @@ export function displayPanelAndSheetInfo(
     svgSheetArray.push({
       newSVGSheet,
       sheetInfo: { ...individualSheetDetails, sheetCount },
-      panelDetails: getPanelDetails(sheetData.panels),
     });
   }); // End of uniqueSheets.forEach
 
@@ -611,6 +619,9 @@ export function displayPanelAndSheetInfo(
   //Total cut
   totalCuts += count_cut;
   // log += `${totalCuts} ${count_cut}`
+
+  let allCut = totalCutLength + addedUnsedLenght;
+  totalCutLength = allCut;
 
   document.getElementById("svgContainer").innerHTML = svgString;
   // document.getElementById("log").innerHTML = log;
@@ -721,16 +732,15 @@ export function checkForErrors(
     panelLabel,
     "panel"
   );
+  console.log([...response, ...sheetError, ...panelError]);
   return [...response, ...sheetError, ...panelError];
 }
 
 export function checkForErrorInExcelFile(data) {
   const errorResponse = [];
+
   for (let i = 0; i < data.length; i++) {
-    if (
-      !grainDirections.includes(data[i].grainDirection) &&
-      data[i].grainDirection
-    ) {
+    if (!grainDirections.includes(data[i].grainDirection)) {
       errorResponse.push({
         type: "error",
         message: `grainDirection in file upload ${data[i].grainDirection} not found`,
