@@ -1,4 +1,5 @@
 import { grainDirections } from "./constants";
+import { formatNumberWithCommas, getPanelDetails } from "./func";
 
 function generateRandomString(length) {
   const characters =
@@ -589,11 +590,11 @@ export function displayPanelAndSheetInfo(
       100
     ).toFixed(2);
     const individualSheetDetails = {
-      stockSheetWidth: sheetWidth,
-      stockSheetHeight: sheetHeight,
-      usedArea: sheetTotalAreaUsed,
+      stockSheetWidth: formatNumberWithCommas(sheetWidth),
+      stockSheetHeight: formatNumberWithCommas(sheetHeight),
+      usedArea: formatNumberWithCommas(sheetTotalAreaUsed),
       totalAreaUsedPercentage: `${totalAreaUsedPercentage}%`,
-      wastedArea: sheetTotalArea - sheetTotalAreaUsed,
+      wastedArea: formatNumberWithCommas(sheetTotalArea - sheetTotalAreaUsed),
       totalWastedAreaPercentage: `${(100 - totalAreaUsedPercentage).toFixed(
         2
       )}%`,
@@ -608,6 +609,7 @@ export function displayPanelAndSheetInfo(
     svgSheetArray.push({
       newSVGSheet,
       sheetInfo: { ...individualSheetDetails, sheetCount },
+      panelDetails: getPanelDetails(sheetData.panels),
     });
   }); // End of uniqueSheets.forEach
 
@@ -642,17 +644,19 @@ export function displayPanelAndSheetInfo(
     panelThickness,
   };
   const globalSheetStatistics = {
-    totalAreaUsed,
+    totalAreaUsed: formatNumberWithCommas(totalAreaUsed),
     totalUsedAreaPercentage: totalUsedAreaPercentage.toFixed(2),
-    totalCutLength,
-    totalCuts,
-    totalWastedArea: totalRemainingArea,
+    totalCutLength: formatNumberWithCommas(totalCutLength),
+    totalCuts: formatNumberWithCommas(totalCuts),
+    totalWastedArea: formatNumberWithCommas(totalRemainingArea),
     totalWastedAreaPercentage: totalWastedAreaPercentage.toFixed(2),
-    panelThickness,
+    panelThickness: formatNumberWithCommas(panelThickness),
     sheetDetails,
     // notPlacedPanel: notPlacedPanel.length,
-    totalParts: panelData.length - notPlacedPanel.length,
-    totalSheetUsed,
+    totalParts: formatNumberWithCommas(
+      panelData.length - notPlacedPanel.length
+    ),
+    totalSheetUsed: formatNumberWithCommas(totalSheetUsed),
   };
   return {
     totalData,

@@ -15,7 +15,6 @@ const SheetTable = ({ sheetStatistics }) => {
       const sheet = sheetStatistics[currentSheetDisplay - 1];
       setSheetDisplay(sheet);
       setTotalSheet(sheetStatistics.length);
-      console.log({ sheet });
     }
   }, [sheetStatistics, currentSheetDisplay]);
 
@@ -94,13 +93,13 @@ const SheetTable = ({ sheetStatistics }) => {
               <tr>
                 <td>Total Used Area</td>
                 <td>
-                  {usedArea} / {totalAreaUsedPercentage} %
+                  {usedArea} / {totalAreaUsedPercentage}
                 </td>
               </tr>
               <tr>
                 <td>Total Wasted Area</td>
                 <td>
-                  {wastedArea} / {totalWastedAreaPercentage} %
+                  {wastedArea} / {totalWastedAreaPercentage}
                 </td>
               </tr>
               <tr>

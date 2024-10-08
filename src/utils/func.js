@@ -43,6 +43,13 @@ export function getUniqueId() {
   return uuidv4();
 }
 
+export function formatNumberWithCommas(number) {
+  return number.toLocaleString("en-US", {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 20, // You can control the number of fraction digits
+  });
+}
+
 export function getPanelDetails(panels) {
   const result = [];
 
